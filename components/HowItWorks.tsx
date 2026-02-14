@@ -1,20 +1,20 @@
 const steps = [
   {
     number: "1",
-    emoji: "📍",
-    title: "Proposez une sortie",
+    emoji: "🏫",
+    title: "Créez ou rejoignez un groupe",
     description:
-      "Parc, goûter, musée, piscine… Créez une sortie en quelques secondes et partagez-la avec les parents de l'école.",
+      "Créez un groupe pour votre école ou classe et partagez le code d'invitation avec les autres parents.",
     bg: "bg-coral-100",
     bubbleBg: "bg-coral-500",
     accent: "text-coral-500",
   },
   {
     number: "2",
-    emoji: "🙋",
-    title: "Les parents rejoignent",
+    emoji: "📍",
+    title: "Proposez une sortie",
     description:
-      "Les familles intéressées s'inscrivent en un clic. Plus besoin de relancer dans le groupe de classe.",
+      "Parc, goûter, musée, piscine… Créez une sortie en quelques secondes et les parents du groupe sont prévenus.",
     bg: "bg-mint-100",
     bubbleBg: "bg-mint-500",
     accent: "text-mint-500",
@@ -22,9 +22,9 @@ const steps = [
   {
     number: "3",
     emoji: "🎉",
-    title: "Tout le monde est prévenu",
+    title: "Organisez-vous ensemble",
     description:
-      "Un rappel automatique avant la sortie, et une invitation agenda pour ne rien oublier. Vous n'avez plus qu'à en profiter.",
+      "Inscrivez-vous, précisez qui apporte quoi, recevez un rappel la veille. Vous n'avez plus qu'à en profiter !",
     bg: "bg-sky-100",
     bubbleBg: "bg-sky-500",
     accent: "text-sky-500",

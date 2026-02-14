@@ -7,11 +7,14 @@ import {
   getEvent,
   updateEvent,
   deleteEvent,
-  subscribeToEvent,
+  rsvpToEvent,
+  unrsvpFromEvent,
   addComment,
   addChecklistItem,
   claimChecklistItem,
   removeChecklistItem,
+  addEventPhoto,
+  removeEventPhoto,
 } from "@/lib/actions";
 
 const CATEGORIES = [
@@ -30,6 +33,8 @@ const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
   CATEGORIES.map((c) => [c.value, c.label])
 );
 
+const OUTDOOR_CATEGORIES = ["parc", "balade", "sport", "piscine"];
+
 interface Comment {
   id: string;
   author: string;
@@ -41,6 +46,13 @@ interface ChecklistItemType {
   id: string;
   label: string;
   claimedBy: string | null;
+}
+
+interface EventPhoto {
+  id: string;
+  data: string;
+  author: string;
+  createdAt: Date;
 }
 
 interface CocoEvent {
@@ -64,9 +76,16 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: string[];
+  attendees: { coming: string[]; maybe: string[]; cant: string[] };
+  photos: EventPhoto[];
   comments: Comment[];
   checklist: ChecklistItemType[];
+}
+
+interface WeatherData {
+  tempMax: number;
+  tempMin: number;
+  weatherCode: number;
 }
 
 function formatDateFR(date: Date): string {
@@ -124,11 +143,109 @@ function buildGoogleCalendarUrl(event: CocoEvent): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
+function downloadICS(event: CocoEvent) {
+  const start = new Date(event.date);
+  const end = event.endDate
+    ? new Date(event.endDate)
+    : new Date(start.getTime() + 2 * 60 * 60 * 1000);
+
+  const fmt = (d: Date) =>
+    d
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d{3}/, "");
+
+  const icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Coco//Coco Events//FR",
+    "BEGIN:VEVENT",
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${event.title}`,
+    `LOCATION:${event.location}`,
+    `DESCRIPTION:${event.description.replace(/\n/g, "\\n")}${event.eventLink ? "\\n\\n" + event.eventLink : ""}`,
+    `ORGANIZER:${event.organizer}`,
+    `UID:${event.id}@coco`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const blob = new Blob([icsContent], {
+    type: "text/calendar;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${event.title.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_")}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function formatAgeRange(min: number | null, max: number | null): string | null {
   if (min != null && max != null) return `${min}–${max} ans`;
   if (min != null) return `dès ${min} ans`;
   if (max != null) return `jusqu'à ${max} ans`;
   return null;
+}
+
+function weatherCodeToLabel(code: number): string {
+  if (code === 0) return "Ciel dégagé";
+  if (code <= 3) return "Partiellement nuageux";
+  if (code <= 48) return "Brouillard";
+  if (code <= 57) return "Bruine";
+  if (code <= 67) return "Pluie";
+  if (code <= 77) return "Neige";
+  if (code <= 82) return "Averses";
+  if (code <= 86) return "Averses de neige";
+  if (code <= 99) return "Orage";
+  return "Inconnu";
+}
+
+function weatherCodeToEmoji(code: number): string {
+  if (code === 0) return "☀️";
+  if (code <= 3) return "⛅";
+  if (code <= 48) return "🌫️";
+  if (code <= 57) return "🌧️";
+  if (code <= 67) return "🌧️";
+  if (code <= 77) return "🌨️";
+  if (code <= 82) return "🌦️";
+  if (code <= 86) return "🌨️";
+  if (code <= 99) return "⛈️";
+  return "🌡️";
+}
+
+function compressImage(
+  file: File,
+  maxWidth = 800,
+  quality = 0.8
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Canvas not supported"));
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 const inputClass =
@@ -187,6 +304,197 @@ function useAddressSearch(query: string) {
   }, [query]);
 
   return { suggestions, loading };
+}
+
+// ---------- Weather Preview ----------
+
+function WeatherPreview({
+  event,
+}: {
+  event: CocoEvent;
+}) {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (
+      !event.latitude ||
+      !event.longitude ||
+      !OUTDOOR_CATEGORIES.includes(event.category)
+    ) {
+      setLoading(false);
+      return;
+    }
+
+    const eventDate = new Date(event.date);
+    if (eventDate < new Date()) {
+      setLoading(false);
+      return;
+    }
+
+    const abortController = new AbortController();
+
+    fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${event.latitude}&longitude=${event.longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`,
+      { signal: abortController.signal }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.daily) return;
+
+        const eventDateStr = eventDate.toISOString().slice(0, 10);
+        const dayIndex = data.daily.time.indexOf(eventDateStr);
+
+        if (dayIndex !== -1) {
+          setWeather({
+            tempMax: data.daily.temperature_2m_max[dayIndex],
+            tempMin: data.daily.temperature_2m_min[dayIndex],
+            weatherCode: data.daily.weathercode[dayIndex],
+          });
+        }
+      })
+      .catch(() => {
+        // Silently fail - just don't show weather
+      })
+      .finally(() => setLoading(false));
+
+    return () => abortController.abort();
+  }, [event.latitude, event.longitude, event.category, event.date]);
+
+  if (loading || !weather) return null;
+
+  return (
+    <div className="mb-4 inline-flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2">
+      <span className="text-2xl">{weatherCodeToEmoji(weather.weatherCode)}</span>
+      <div>
+        <p className="text-sm font-bold text-sky-700">
+          {weather.tempMin}° / {weather.tempMax}°C
+        </p>
+        <p className="text-xs text-sky-500">
+          {weatherCodeToLabel(weather.weatherCode)}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Photo Gallery ----------
+
+function PhotoGallery({
+  eventId,
+  photos: initialPhotos,
+  isOrganizer,
+}: {
+  eventId: string;
+  photos: EventPhoto[];
+  isOrganizer: boolean;
+}) {
+  const [photos, setPhotos] = useState(initialPhotos);
+  const [isPending, startTransition] = useTransition();
+  const [username, setUsername] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("coco_username");
+    if (saved) setUsername(saved);
+  }, []);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !username) return;
+
+    let imageData: string;
+    try {
+      imageData = await compressImage(file);
+    } catch {
+      const reader = new FileReader();
+      imageData = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    startTransition(async () => {
+      const result = await addEventPhoto(eventId, imageData, username);
+      if (result.photo) {
+        setPhotos((prev) => [result.photo, ...prev]);
+      }
+    });
+
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function handleRemove(photoId: string) {
+    startTransition(async () => {
+      await removeEventPhoto(photoId);
+      setPhotos((prev) => prev.filter((p) => p.id !== photoId));
+    });
+  }
+
+  return (
+    <div>
+      <h3 className="mb-4 text-lg font-extrabold text-charcoal">
+        Photos ({photos.length})
+      </h3>
+
+      {username && (
+        <div className="mb-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleUpload}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isPending}
+            className="rounded-full bg-coral-500 px-5 py-2.5 text-sm font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
+          >
+            {isPending ? "Envoi..." : "Ajouter une photo 📸"}
+          </button>
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {photos.map((photo) => (
+            <div key={photo.id} className="group relative overflow-hidden rounded-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photo.data}
+                alt={`Photo par ${photo.author}`}
+                className="h-40 w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
+                <p className="text-xs font-semibold text-white">
+                  {photo.author}
+                </p>
+              </div>
+              {(isOrganizer ||
+                username.toLowerCase() === photo.author.toLowerCase()) && (
+                <button
+                  onClick={() => handleRemove(photo.id)}
+                  disabled={isPending}
+                  className="absolute top-2 right-2 rounded-full bg-white/80 px-2 py-1 text-xs font-bold text-pink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white disabled:opacity-50"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {photos.length === 0 && (
+        <p className="text-sm text-charcoal-muted">
+          Aucune photo pour le moment. Partagez vos souvenirs !
+        </p>
+      )}
+    </div>
+  );
 }
 
 // ---------- Edit Form ----------
@@ -622,7 +930,8 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<CocoEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [showSubscribe, setShowSubscribe] = useState(false);
+  const [showRsvp, setShowRsvp] = useState(false);
+  const [rsvpStatus, setRsvpStatus] = useState<"coming" | "maybe">("coming");
   const [subscribeName, setSubscribeName] = useState("");
   const [justSubscribed, setJustSubscribed] = useState(false);
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
@@ -632,7 +941,7 @@ export default function EventDetailPage() {
 
   const loadEvent = useCallback(() => {
     getEvent(id).then((data) => {
-      setEvent(data);
+      setEvent(data as CocoEvent | null);
       setLoading(false);
     });
   }, [id]);
@@ -646,20 +955,56 @@ export default function EventDetailPage() {
     if (saved) setSubscribeName(saved);
   }, []);
 
-  function handleSubscribe() {
-    if (!subscribeName.trim()) return;
-    localStorage.setItem("coco_username", subscribeName.trim());
+  function getUsernameFromStorage(): string {
+    return localStorage.getItem("coco_username") || "";
+  }
+
+  function isUserInAnyList(): boolean {
+    if (!event) return false;
+    const saved = getUsernameFromStorage().toLowerCase();
+    if (!saved) return false;
+    return (
+      event.attendees.coming.some((n) => n.toLowerCase() === saved) ||
+      event.attendees.maybe.some((n) => n.toLowerCase() === saved) ||
+      event.attendees.cant.some((n) => n.toLowerCase() === saved)
+    );
+  }
+
+  function handleRsvp(status: "coming" | "maybe") {
+    const name = subscribeName.trim();
+    if (!name) {
+      setRsvpStatus(status);
+      setShowRsvp(true);
+      return;
+    }
+    localStorage.setItem("coco_username", name);
     startTransition(async () => {
-      const result = await subscribeToEvent(id, subscribeName.trim());
+      const result = await rsvpToEvent(id, name, status);
       if (result.error) {
         setSubscribeError(result.error);
-      } else {
+      } else if (result.attendees) {
         setEvent((prev) =>
           prev ? { ...prev, attendees: result.attendees } : prev
         );
-        setSubscribeName("");
-        setShowSubscribe(false);
+        setShowRsvp(false);
         setJustSubscribed(true);
+        setSubscribeError(null);
+      }
+    });
+  }
+
+  function handleUnrsvp() {
+    const name = getUsernameFromStorage().trim();
+    if (!name) return;
+    startTransition(async () => {
+      const result = await unrsvpFromEvent(id, name);
+      if (result.error) {
+        setSubscribeError(result.error);
+      } else if (result.attendees) {
+        setEvent((prev) =>
+          prev ? { ...prev, attendees: result.attendees } : prev
+        );
+        setJustSubscribed(false);
         setSubscribeError(null);
       }
     });
@@ -729,12 +1074,13 @@ export default function EventDetailPage() {
   const isPast = new Date(event.date) < new Date();
   const isFull =
     event.maxParticipants != null &&
-    event.attendees.length >= event.maxParticipants;
+    event.attendees.coming.length >= event.maxParticipants;
   const ageRange = formatAgeRange(event.ageMin, event.ageMax);
   const spotsLeft =
     event.maxParticipants != null
-      ? event.maxParticipants - event.attendees.length
+      ? event.maxParticipants - event.attendees.coming.length
       : null;
+  const userAlreadyRsvped = isUserInAnyList();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
@@ -808,6 +1154,14 @@ export default function EventDetailPage() {
                   {event.endDate && ` → ${formatTimeFR(event.endDate)}`}
                 </p>
 
+                {/* Weather Preview for future outdoor events */}
+                {!isPast &&
+                  OUTDOOR_CATEGORIES.includes(event.category) &&
+                  event.latitude &&
+                  event.longitude && (
+                    <WeatherPreview event={event} />
+                  )}
+
                 <p className="mb-4 text-sm text-charcoal-muted">
                   Organisé par{" "}
                   <span className="font-semibold text-charcoal">
@@ -830,7 +1184,7 @@ export default function EventDetailPage() {
                   </a>
                 )}
 
-                {/* Action buttons: share + edit/delete */}
+                {/* Action buttons: share + calendar + edit/delete/duplicate */}
                 <div className="mb-6 flex flex-wrap gap-2">
                   <button
                     onClick={handleShare}
@@ -848,6 +1202,13 @@ export default function EventDetailPage() {
                     Google Calendar 📅
                   </a>
 
+                  <button
+                    onClick={() => downloadICS(event)}
+                    className="rounded-full border-2 border-lavender-200 px-5 py-2 text-sm font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
+                  >
+                    Télécharger .ics 📥
+                  </button>
+
                   {isOrganizer() && (
                     <>
                       <button
@@ -855,6 +1216,12 @@ export default function EventDetailPage() {
                         className="rounded-full border-2 border-lavender-200 px-5 py-2 text-sm font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
                       >
                         Modifier ✏️
+                      </button>
+                      <button
+                        onClick={() => router.push(`/create?duplicate=${event.id}`)}
+                        className="rounded-full border-2 border-sky-200 px-5 py-2 text-sm font-bold text-sky-500 hover:bg-sky-100"
+                      >
+                        Dupliquer 📋
                       </button>
                       {!showDeleteConfirm ? (
                         <button
@@ -888,8 +1255,8 @@ export default function EventDetailPage() {
                 {/* Participants */}
                 <div className="mb-6 rounded-2xl bg-coral-50 p-4">
                   <p className="mb-2 text-sm font-bold text-charcoal">
-                    {event.attendees.length} participant
-                    {event.attendees.length !== 1 ? "s" : ""}
+                    {event.attendees.coming.length} participant
+                    {event.attendees.coming.length !== 1 ? "s" : ""}
                     {spotsLeft != null && (
                       <span
                         className={`ml-1 ${spotsLeft <= 2 && spotsLeft > 0 ? "text-pink-500" : "text-charcoal-muted"}`}
@@ -901,31 +1268,78 @@ export default function EventDetailPage() {
                     )}
                   </p>
 
-                  {event.attendees.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-1.5">
-                      {event.attendees.map((a) => (
-                        <span
-                          key={a}
-                          className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
-                        >
-                          {a}
-                        </span>
-                      ))}
+                  {/* Coming */}
+                  {event.attendees.coming.length > 0 && (
+                    <div className="mb-2">
+                      <p className="mb-1 text-xs font-bold text-mint-500">Je viens</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {event.attendees.coming.map((a) => (
+                          <span
+                            key={a}
+                            className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
+                          >
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Maybe */}
+                  {event.attendees.maybe.length > 0 && (
+                    <div className="mb-2">
+                      <p className="mb-1 text-xs font-bold text-amber-500">Peut-être</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {event.attendees.maybe.map((a) => (
+                          <span
+                            key={a}
+                            className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-500"
+                          >
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Can't */}
+                  {event.attendees.cant.length > 0 && (
+                    <div className="mb-2">
+                      <p className="mb-1 text-xs font-bold text-pink-500">Ne peut pas</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {event.attendees.cant.map((a) => (
+                          <span
+                            key={a}
+                            className="inline-block rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-500"
+                          >
+                            {a}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
 
                   {!isPast && (
-                    <div className="space-y-3">
-                      {!showSubscribe && !justSubscribed && !isFull && (
-                        <button
-                          onClick={() => setShowSubscribe(true)}
-                          className="w-full rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
-                        >
-                          S&apos;inscrire 🙋
-                        </button>
+                    <div className="mt-3 space-y-3">
+                      {/* RSVP buttons - show if user hasn't RSVP'd yet */}
+                      {!userAlreadyRsvped && !showRsvp && !justSubscribed && !isFull && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleRsvp("coming")}
+                            className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
+                          >
+                            Je viens ✋
+                          </button>
+                          <button
+                            onClick={() => handleRsvp("maybe")}
+                            className="flex-1 rounded-full border-2 border-amber-300 px-6 py-3 font-bold text-amber-500 shadow transition-all hover:bg-amber-50 hover:shadow-md active:scale-95"
+                          >
+                            Peut-être 🤔
+                          </button>
+                        </div>
                       )}
 
-                      {isFull && !justSubscribed && (
+                      {isFull && !userAlreadyRsvped && !justSubscribed && (
                         <div className="rounded-xl bg-pink-100 px-4 py-3 text-center text-sm font-semibold text-pink-500">
                           Cette sortie est complète
                         </div>
@@ -937,44 +1351,71 @@ export default function EventDetailPage() {
                         </div>
                       )}
 
-                      {showSubscribe && (
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={subscribeName}
-                            onChange={(e) => setSubscribeName(e.target.value)}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && handleSubscribe()
-                            }
-                            placeholder="Votre prénom"
-                            autoFocus
-                            className="flex-1 rounded-xl border-2 border-coral-200 bg-white px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
-                          />
-                          <button
-                            onClick={handleSubscribe}
-                            disabled={isPending || !subscribeName.trim()}
-                            className="rounded-full bg-coral-500 px-5 py-2.5 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
-                          >
-                            {isPending ? "..." : "OK"}
-                          </button>
-                          <button
-                            onClick={() => setShowSubscribe(false)}
-                            className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-white transition-colors"
-                          >
-                            Annuler
-                          </button>
+                      {/* Name input for RSVP */}
+                      {showRsvp && (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={subscribeName}
+                              onChange={(e) => setSubscribeName(e.target.value)}
+                              onKeyDown={(e) =>
+                                e.key === "Enter" && handleRsvp(rsvpStatus)
+                              }
+                              placeholder="Votre prénom"
+                              autoFocus
+                              className="flex-1 rounded-xl border-2 border-coral-200 bg-white px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
+                            />
+                            <button
+                              onClick={() => handleRsvp(rsvpStatus)}
+                              disabled={isPending || !subscribeName.trim()}
+                              className="rounded-full bg-coral-500 px-5 py-2.5 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
+                            >
+                              {isPending ? "..." : "OK"}
+                            </button>
+                            <button
+                              onClick={() => setShowRsvp(false)}
+                              className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-white transition-colors"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                          <p className="text-xs text-charcoal-muted">
+                            {rsvpStatus === "coming"
+                              ? "Vous confirmez votre venue ✋"
+                              : "Vous indiquez un peut-être 🤔"}
+                          </p>
                         </div>
                       )}
 
-                      {justSubscribed && (
-                        <a
-                          href={buildGoogleCalendarUrl(event)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-sky-400 hover:shadow-md active:scale-95"
+                      {/* Cancel RSVP button */}
+                      {userAlreadyRsvped && !justSubscribed && (
+                        <button
+                          onClick={handleUnrsvp}
+                          disabled={isPending}
+                          className="w-full rounded-full border-2 border-pink-200 px-6 py-3 font-bold text-pink-500 transition-all hover:bg-pink-50 active:scale-95 disabled:opacity-50"
                         >
-                          Ajouter a Google Calendar 📅
-                        </a>
+                          {isPending ? "..." : "Annuler inscription"}
+                        </button>
+                      )}
+
+                      {justSubscribed && (
+                        <div className="space-y-2">
+                          <a
+                            href={buildGoogleCalendarUrl(event)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-sky-400 hover:shadow-md active:scale-95"
+                          >
+                            Ajouter a Google Calendar 📅
+                          </a>
+                          <button
+                            onClick={() => downloadICS(event)}
+                            className="inline-flex w-full items-center justify-center rounded-full border-2 border-lavender-200 px-6 py-3 font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
+                          >
+                            Télécharger .ics 📥
+                          </button>
+                        </div>
                       )}
                     </div>
                   )}
@@ -988,6 +1429,17 @@ export default function EventDetailPage() {
                     isOrganizer={isOrganizer()}
                   />
                 </div>
+
+                {/* Photo Gallery - only for past events */}
+                {isPast && (
+                  <div className="mb-6">
+                    <PhotoGallery
+                      eventId={event.id}
+                      photos={event.photos}
+                      isOrganizer={isOrganizer()}
+                    />
+                  </div>
+                )}
 
                 {/* Comments */}
                 <CommentSection

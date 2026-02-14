@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { getEvents, subscribeToEvent } from "@/lib/actions";
+import { getEvents, rsvpToEvent, unrsvpFromEvent } from "@/lib/actions";
 import Link from "next/link";
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -42,7 +42,7 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: string[];
+  attendees: { coming: string[]; maybe: string[]; cant: string[] };
 }
 
 function formatDateFR(date: Date): string {
@@ -94,9 +94,24 @@ function formatAgeRange(
   return null;
 }
 
+function isUserInAttendees(
+  attendees: CocoEvent["attendees"],
+  username: string
+): boolean {
+  const lower = username.toLowerCase();
+  return (
+    attendees.coming.some((n) => n.toLowerCase() === lower) ||
+    attendees.maybe.some((n) => n.toLowerCase() === lower) ||
+    attendees.cant.some((n) => n.toLowerCase() === lower)
+  );
+}
+
 function EventCard({ event: initial }: { event: CocoEvent }) {
   const [event, setEvent] = useState(initial);
   const [showSubscribe, setShowSubscribe] = useState(false);
+  const [rsvpStatus, setRsvpStatus] = useState<"coming" | "maybe" | null>(
+    null
+  );
   const [name, setName] = useState("");
   const [justSubscribed, setJustSubscribed] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -107,31 +122,71 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
     if (saved) setName(saved);
   }, []);
 
-  function handleSubscribe() {
+  const storedUsername =
+    typeof window !== "undefined"
+      ? localStorage.getItem("coco_username") || ""
+      : "";
+  const alreadyRegistered =
+    storedUsername.trim() !== "" &&
+    isUserInAttendees(event.attendees, storedUsername);
+
+  function handleRsvp(status: "coming" | "maybe") {
+    // If name already stored, just set the status and ask for name input
+    if (name.trim()) {
+      // We have a name, proceed directly
+      doRsvp(status);
+    } else {
+      // Show name input first
+      setRsvpStatus(status);
+      setShowSubscribe(true);
+    }
+  }
+
+  function doRsvp(status: "coming" | "maybe") {
     if (!name.trim()) return;
     localStorage.setItem("coco_username", name.trim());
     startTransition(async () => {
-      const result = await subscribeToEvent(event.id, name.trim());
+      const result = await rsvpToEvent(event.id, name.trim(), status);
       if (result.error) {
         setSubscribeError(result.error);
       } else {
-        setEvent((prev) => ({ ...prev, attendees: result.attendees }));
-        setName("");
+        setEvent((prev) => ({ ...prev, attendees: result.attendees! }));
         setShowSubscribe(false);
+        setRsvpStatus(null);
         setJustSubscribed(true);
         setSubscribeError(null);
       }
     });
   }
 
+  function handleUnrsvp() {
+    const username = localStorage.getItem("coco_username");
+    if (!username) return;
+    startTransition(async () => {
+      const result = await unrsvpFromEvent(event.id, username.trim());
+      if (result.error) {
+        setSubscribeError(result.error);
+      } else {
+        setEvent((prev) => ({ ...prev, attendees: result.attendees! }));
+        setJustSubscribed(false);
+        setSubscribeError(null);
+      }
+    });
+  }
+
+  function handleNameSubmit() {
+    if (!name.trim() || !rsvpStatus) return;
+    doRsvp(rsvpStatus);
+  }
+
   const isPast = new Date(event.date) < new Date();
   const isFull =
     event.maxParticipants != null &&
-    event.attendees.length >= event.maxParticipants;
+    event.attendees.coming.length >= event.maxParticipants;
   const ageRange = formatAgeRange(event.ageMin, event.ageMax);
   const spotsLeft =
     event.maxParticipants != null
-      ? event.maxParticipants - event.attendees.length
+      ? event.maxParticipants - event.attendees.coming.length
       : null;
 
   return (
@@ -225,8 +280,8 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         {/* Participants */}
         <div className="mb-4">
           <p className="mb-1 text-xs font-bold text-charcoal-muted uppercase">
-            {event.attendees.length} participant
-            {event.attendees.length !== 1 ? "s" : ""}
+            {event.attendees.coming.length} participant
+            {event.attendees.coming.length !== 1 ? "s" : ""}
             {spotsLeft != null && (
               <span
                 className={`ml-1 ${spotsLeft <= 2 && spotsLeft > 0 ? "text-pink-500" : ""}`}
@@ -237,16 +292,42 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               </span>
             )}
           </p>
-          {event.attendees.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {event.attendees.map((a) => (
-                <span
-                  key={a}
-                  className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
-                >
-                  {a}
-                </span>
-              ))}
+
+          {/* Coming attendees */}
+          {event.attendees.coming.length > 0 && (
+            <div className="mb-1">
+              <p className="text-[10px] font-semibold text-mint-500 uppercase mb-0.5">
+                Présents
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {event.attendees.coming.map((a) => (
+                  <span
+                    key={a}
+                    className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Maybe attendees */}
+          {event.attendees.maybe.length > 0 && (
+            <div className="mt-1">
+              <p className="text-[10px] font-semibold text-amber-500 uppercase mb-0.5">
+                Peut-être
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {event.attendees.maybe.map((a) => (
+                  <span
+                    key={a}
+                    className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-600"
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -259,16 +340,39 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
 
         {!isPast && (
           <div className="space-y-3">
-            {!showSubscribe && !justSubscribed && !isFull && (
+            {/* Already registered: show cancel button */}
+            {alreadyRegistered && !justSubscribed && (
               <button
-                onClick={() => setShowSubscribe(true)}
-                className="w-full rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
+                onClick={handleUnrsvp}
+                disabled={isPending}
+                className="w-full rounded-full border-2 border-pink-300 bg-pink-50 px-6 py-3 font-bold text-pink-500 shadow transition-all hover:bg-pink-100 active:scale-95 disabled:opacity-50"
               >
-                S&apos;inscrire 🙋
+                {isPending ? "..." : "Annuler inscription"}
               </button>
             )}
 
-            {isFull && !justSubscribed && (
+            {/* Not registered, not full: show RSVP buttons */}
+            {!alreadyRegistered &&
+              !showSubscribe &&
+              !justSubscribed &&
+              !isFull && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleRsvp("coming")}
+                    className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
+                  >
+                    Je viens ✋
+                  </button>
+                  <button
+                    onClick={() => handleRsvp("maybe")}
+                    className="flex-1 rounded-full border-2 border-amber-300 bg-amber-50 px-6 py-3 font-bold text-amber-600 shadow transition-all hover:bg-amber-100 hover:shadow-md active:scale-95"
+                  >
+                    Peut-être 🤔
+                  </button>
+                </div>
+              )}
+
+            {isFull && !alreadyRegistered && !justSubscribed && (
               <div className="rounded-xl bg-pink-50 px-4 py-3 text-center text-sm font-semibold text-pink-500">
                 Cette sortie est complète
               </div>
@@ -280,20 +384,23 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
+                  onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
                   placeholder="Votre prénom"
                   autoFocus
                   className="flex-1 rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
                 />
                 <button
-                  onClick={handleSubscribe}
+                  onClick={handleNameSubmit}
                   disabled={isPending || !name.trim()}
                   className="rounded-full bg-coral-500 px-5 py-2.5 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
                 >
                   {isPending ? "..." : "OK"}
                 </button>
                 <button
-                  onClick={() => setShowSubscribe(false)}
+                  onClick={() => {
+                    setShowSubscribe(false);
+                    setRsvpStatus(null);
+                  }}
                   className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-gray-50 transition-colors"
                 >
                   Annuler
@@ -330,6 +437,7 @@ export default function EventsPage() {
   const [allEvents, setAllEvents] = useState<CocoEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showPast, setShowPast] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
   const [hasGroups, setHasGroups] = useState(true);
@@ -346,6 +454,13 @@ export default function EventsPage() {
   const now = new Date();
   const filtered = allEvents.filter((e) => {
     if (categoryFilter && e.category !== categoryFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const matchesTitle = e.title.toLowerCase().includes(q);
+      const matchesLocation = e.location.toLowerCase().includes(q);
+      const matchesDescription = e.description.toLowerCase().includes(q);
+      if (!matchesTitle && !matchesLocation && !matchesDescription) return false;
+    }
     return true;
   });
 
@@ -384,6 +499,14 @@ export default function EventsPage() {
 
         {/* Filters */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Rechercher..."
+            className="flex-1 min-w-[180px] rounded-full border-2 border-coral-200 bg-white px-4 py-2 text-sm text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
+          />
+
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}

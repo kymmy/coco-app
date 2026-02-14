@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useTransition } from "react";
-import { createEvent, getGroups } from "@/lib/actions";
+import { useState, useRef, useEffect, useCallback, useTransition, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { createEvent, getEvent, getGroups } from "@/lib/actions";
 import Link from "next/link";
 
 interface Group {
@@ -27,6 +28,20 @@ interface AddressSuggestion {
   context: string;
   lat: number;
   lng: number;
+}
+
+interface EventDefaults {
+  title: string;
+  category: string;
+  date: string;
+  endDate: string;
+  price: string;
+  maxParticipants: string;
+  ageMin: string;
+  ageMax: string;
+  description: string;
+  eventLink: string;
+  recurrenceCount: string;
 }
 
 function useAddressSearch(query: string) {
@@ -108,7 +123,10 @@ function compressImage(file: File, maxWidth = 800, quality = 0.8): Promise<strin
 const inputClass =
   "w-full rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-3 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors";
 
-export default function CreateEventPage() {
+function CreateEventForm() {
+  const searchParams = useSearchParams();
+  const duplicateId = searchParams.get("duplicate");
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [location, setLocation] = useState("");
@@ -122,6 +140,23 @@ export default function CreateEventPage() {
   const [recurrence, setRecurrence] = useState("none");
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [defaults, setDefaults] = useState<EventDefaults | null>(
+    duplicateId ? null : {
+      title: "",
+      category: "autre",
+      date: "",
+      endDate: "",
+      price: "Gratuit",
+      maxParticipants: "",
+      ageMin: "",
+      ageMax: "",
+      description: "",
+      eventLink: "",
+      recurrenceCount: "4",
+    }
+  );
+
+  const isDuplicate = !!duplicateId;
 
   // Auto-fill organizer and load groups from localStorage
   useEffect(() => {
@@ -133,6 +168,48 @@ export default function CreateEventPage() {
       getGroups(groupIds).then(setMyGroups);
     }
   }, []);
+
+  // Fetch event data for duplication
+  useEffect(() => {
+    if (!duplicateId) return;
+
+    getEvent(duplicateId).then((event) => {
+      if (!event) return;
+
+      // Set controlled state
+      setOrganizer(event.organizer);
+      setLocation(event.location);
+      if (event.latitude != null && event.longitude != null) {
+        setCoords({ lat: event.latitude, lng: event.longitude });
+      }
+      if (event.groupId) {
+        setSelectedGroupId(event.groupId);
+      }
+      // Don't copy recurrence — the duplicate is a new single event
+      setRecurrence("none");
+
+      // Set image if present
+      if (event.image) {
+        setImagePreview(event.image);
+        setImageData(event.image);
+      }
+
+      // Set defaults for uncontrolled inputs
+      setDefaults({
+        title: event.title,
+        category: event.category,
+        date: "", // Leave date blank so user picks a new date
+        endDate: "",
+        price: event.price,
+        maxParticipants: event.maxParticipants != null ? String(event.maxParticipants) : "",
+        ageMin: event.ageMin != null ? String(event.ageMin) : "",
+        ageMax: event.ageMax != null ? String(event.ageMax) : "",
+        description: event.description,
+        eventLink: event.eventLink,
+        recurrenceCount: "4",
+      });
+    });
+  }, [duplicateId]);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -192,6 +269,19 @@ export default function CreateEventPage() {
     });
   }
 
+  // Wait for defaults to load before rendering the form
+  if (!defaults) {
+    return (
+      <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-xl">
+          <div className="rounded-3xl bg-white p-8 shadow-lg text-center">
+            <p className="text-charcoal-muted">Chargement...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-xl">
@@ -204,7 +294,11 @@ export default function CreateEventPage() {
 
         <div className="rounded-3xl bg-white p-8 shadow-lg">
           <h1 className="mb-2 text-3xl font-extrabold text-charcoal">
-            Proposer une sortie <span className="text-coral-500">🎉</span>
+            {isDuplicate ? (
+              <>Dupliquer une sortie <span className="text-coral-500">📋</span></>
+            ) : (
+              <>Proposer une sortie <span className="text-coral-500">🎉</span></>
+            )}
           </h1>
           <p className="mb-8 text-charcoal-muted">
             Remplissez les infos et partagez avec les parents !
@@ -216,7 +310,7 @@ export default function CreateEventPage() {
             </div>
           )}
 
-          <form action={handleSubmit} className="space-y-6">
+          <form action={handleSubmit} className="space-y-6" key={duplicateId || "new"}>
             {/* Title */}
             <div>
               <label htmlFor="title" className="mb-1 block text-sm font-bold text-charcoal">
@@ -227,6 +321,7 @@ export default function CreateEventPage() {
                 id="title"
                 name="title"
                 required
+                defaultValue={defaults.title}
                 placeholder="ex: Sortie au zoo de Lyon"
                 className={inputClass}
               />
@@ -240,7 +335,7 @@ export default function CreateEventPage() {
               <select
                 id="category"
                 name="category"
-                defaultValue="autre"
+                defaultValue={defaults.category}
                 className={`${inputClass} cursor-pointer`}
               >
                 {CATEGORIES.map((c) => (
@@ -302,6 +397,7 @@ export default function CreateEventPage() {
                   id="date"
                   name="date"
                   required
+                  defaultValue={defaults.date}
                   className={inputClass}
                 />
               </div>
@@ -313,6 +409,7 @@ export default function CreateEventPage() {
                   type="datetime-local"
                   id="endDate"
                   name="endDate"
+                  defaultValue={defaults.endDate}
                   className={inputClass}
                 />
               </div>
@@ -346,7 +443,7 @@ export default function CreateEventPage() {
                     name="recurrenceCount"
                     min="2"
                     max="52"
-                    defaultValue="4"
+                    defaultValue={defaults.recurrenceCount}
                     className={inputClass}
                   />
                 </div>
@@ -415,7 +512,7 @@ export default function CreateEventPage() {
                   id="price"
                   name="price"
                   placeholder="ex: Gratuit, 5€/enfant..."
-                  defaultValue="Gratuit"
+                  defaultValue={defaults.price}
                   className={inputClass}
                 />
               </div>
@@ -428,6 +525,7 @@ export default function CreateEventPage() {
                   id="maxParticipants"
                   name="maxParticipants"
                   min="2"
+                  defaultValue={defaults.maxParticipants}
                   placeholder="Illimité"
                   className={inputClass}
                 />
@@ -447,6 +545,7 @@ export default function CreateEventPage() {
                     name="ageMin"
                     min="0"
                     max="17"
+                    defaultValue={defaults.ageMin}
                     placeholder="Min"
                     className={inputClass}
                   />
@@ -461,6 +560,7 @@ export default function CreateEventPage() {
                     name="ageMax"
                     min="0"
                     max="17"
+                    defaultValue={defaults.ageMax}
                     placeholder="Max"
                     className={inputClass}
                   />
@@ -481,6 +581,7 @@ export default function CreateEventPage() {
                 name="description"
                 required
                 rows={4}
+                defaultValue={defaults.description}
                 placeholder="Décrivez la sortie, l'ambiance, ce qu'il faut prévoir..."
                 className={`${inputClass} resize-none`}
               />
@@ -495,6 +596,7 @@ export default function CreateEventPage() {
                 type="url"
                 id="eventLink"
                 name="eventLink"
+                defaultValue={defaults.eventLink}
                 placeholder="https://..."
                 className={inputClass}
               />
@@ -532,11 +634,33 @@ export default function CreateEventPage() {
               disabled={isPending}
               className="w-full rounded-full bg-coral-500 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl active:scale-95 disabled:opacity-50"
             >
-              {isPending ? "Publication en cours..." : "Publier la sortie 🚀"}
+              {isPending
+                ? "Publication en cours..."
+                : isDuplicate
+                  ? "Publier la copie 🚀"
+                  : "Publier la sortie 🚀"}
             </button>
           </form>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function CreateEventPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-xl">
+            <div className="rounded-3xl bg-white p-8 shadow-lg text-center">
+              <p className="text-charcoal-muted">Chargement...</p>
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <CreateEventForm />
+    </Suspense>
   );
 }

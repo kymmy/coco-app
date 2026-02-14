@@ -40,9 +40,31 @@ model Event {
   groupId         String?
   group           Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   createdAt       DateTime        @default(now())
-  attendees       String          @default("[]") // JSON array of names
+  attendees       String          @default("[]") // JSON array of names (legacy)
+  reminderSent    Boolean         @default(false)
   comments        Comment[]
   checklist       ChecklistItem[]
+  rsvps           Rsvp[]
+  photos          EventPhoto[]
+}
+
+model Rsvp {
+  id      String @id @default(uuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name    String
+  status  String @default("coming") // "coming" | "maybe" | "cant"
+
+  @@unique([eventId, name])
+}
+
+model EventPhoto {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  data      String   // base64 data URL
+  author    String
+  createdAt DateTime @default(now())
 }
 
 model Comment {

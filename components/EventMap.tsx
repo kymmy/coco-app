@@ -12,7 +12,7 @@ interface MapEvent {
   latitude: number | null;
   longitude: number | null;
   category: string;
-  attendees: string[];
+  attendees: { coming: string[]; maybe: string[]; cant: string[] };
 }
 
 function formatDateShort(date: Date): string {
@@ -64,7 +64,7 @@ export default function EventMap({ events }: { events: MapEvent[] }) {
           `<div style="font-family:Nunito,sans-serif;">
             <strong style="font-size:14px;">${e.title}</strong><br/>
             <span style="color:#6B6B6B;font-size:12px;">📅 ${formatDateShort(e.date)}</span><br/>
-            <span style="color:#6B6B6B;font-size:12px;">👥 ${e.attendees.length} participant${e.attendees.length !== 1 ? "s" : ""}</span><br/>
+            <span style="color:#6B6B6B;font-size:12px;">👥 ${e.attendees.coming.length} participant${e.attendees.coming.length !== 1 ? "s" : ""}</span><br/>
             <a href="/events/${e.id}" style="color:#FF6B6B;font-weight:bold;font-size:12px;text-decoration:none;">Voir les détails →</a>
           </div>`
         );

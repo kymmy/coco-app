@@ -18,7 +18,6 @@ function generateCode(): string {
 export async function createGroup(name: string) {
   if (!name.trim()) return { error: "Le nom du groupe est requis." };
 
-  // Generate unique code
   let code = generateCode();
   let exists = await prisma.group.findUnique({ where: { code } });
   while (exists) {
@@ -95,7 +94,6 @@ export async function createEvent(formData: FormData) {
     ageMin: ageMin ? parseInt(ageMin, 10) : null,
     ageMax: ageMax ? parseInt(ageMax, 10) : null,
     groupId: groupId || null,
-    attendees: "[]",
   };
 
   if (recurrence && recurrence !== "none" && recurrenceCount) {
@@ -110,7 +108,6 @@ export async function createEvent(formData: FormData) {
     const intervalDays =
       recurrence === "weekly" ? 7 : recurrence === "biweekly" ? 14 : 30;
 
-    const events = [];
     for (let i = 0; i < count; i++) {
       const eventDate = new Date(
         startDate.getTime() + i * intervalDays * 24 * 60 * 60 * 1000
@@ -119,10 +116,10 @@ export async function createEvent(formData: FormData) {
         ? new Date(eventDate.getTime() + duration)
         : null;
 
-      events.push({ ...baseData, date: eventDate, endDate: eventEnd, seriesId });
+      await prisma.event.create({
+        data: { ...baseData, date: eventDate, endDate: eventEnd, seriesId },
+      });
     }
-
-    await prisma.event.createMany({ data: events });
   } else {
     await prisma.event.create({
       data: {
@@ -146,20 +143,28 @@ export async function createEvent(formData: FormData) {
   redirect("/events");
 }
 
+function formatRsvps(rsvps: { name: string; status: string }[]) {
+  return {
+    coming: rsvps.filter((r) => r.status === "coming").map((r) => r.name),
+    maybe: rsvps.filter((r) => r.status === "maybe").map((r) => r.name),
+    cant: rsvps.filter((r) => r.status === "cant").map((r) => r.name),
+  };
+}
+
 export async function getEvents(groupIds?: string[]) {
-  const where = groupIds && groupIds.length > 0
-    ? { groupId: { in: groupIds } }
-    : {};
+  const where =
+    groupIds && groupIds.length > 0 ? { groupId: { in: groupIds } } : {};
 
   const events = await prisma.event.findMany({
     where,
     orderBy: { date: "asc" },
-    include: { group: true },
+    include: { group: true, rsvps: true },
   });
 
   return events.map((e) => ({
     ...e,
-    attendees: JSON.parse(e.attendees) as string[],
+    attendees: formatRsvps(e.rsvps),
+    rsvps: undefined,
   }));
 }
 
@@ -170,6 +175,8 @@ export async function getEvent(id: string) {
       comments: { orderBy: { createdAt: "asc" } },
       checklist: true,
       group: true,
+      rsvps: true,
+      photos: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -177,7 +184,8 @@ export async function getEvent(id: string) {
 
   return {
     ...event,
-    attendees: JSON.parse(event.attendees) as string[],
+    attendees: formatRsvps(event.rsvps),
+    rsvps: undefined,
   };
 }
 
@@ -234,39 +242,77 @@ export async function deleteEvent(id: string) {
   redirect("/events");
 }
 
-// ==================== SUBSCRIBE ====================
+// ==================== RSVP ====================
 
-export async function subscribeToEvent(eventId: string, name: string) {
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
-  if (!event) return { error: "Événement introuvable.", attendees: [] as string[] };
+export async function rsvpToEvent(
+  eventId: string,
+  name: string,
+  status: "coming" | "maybe" | "cant"
+) {
+  if (!name.trim()) return { error: "Le prénom est requis." };
 
-  const attendees = JSON.parse(event.attendees) as string[];
-  if (attendees.includes(name)) return { attendees };
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    include: { rsvps: true },
+  });
+  if (!event) return { error: "Événement introuvable." };
 
-  if (event.maxParticipants && attendees.length >= event.maxParticipants) {
-    return { error: "Cette sortie est complète.", attendees };
+  const comingCount = event.rsvps.filter((r) => r.status === "coming").length;
+  const existingRsvp = event.rsvps.find(
+    (r) => r.name.toLowerCase() === name.trim().toLowerCase()
+  );
+
+  // Check capacity for new "coming" RSVPs
+  if (
+    status === "coming" &&
+    event.maxParticipants &&
+    comingCount >= event.maxParticipants &&
+    (!existingRsvp || existingRsvp.status !== "coming")
+  ) {
+    return { error: "Cette sortie est complète." };
   }
 
-  attendees.push(name);
-
-  await prisma.event.update({
-    where: { id: eventId },
-    data: { attendees: JSON.stringify(attendees) },
+  await prisma.rsvp.upsert({
+    where: {
+      eventId_name: { eventId, name: name.trim() },
+    },
+    update: { status },
+    create: { eventId, name: name.trim(), status },
   });
 
-  // Notify organizer
-  sendPushToUser(event.organizer, {
-    title: `${name} s'est inscrit(e) !`,
-    body: `${name} participe à "${event.title}"`,
-    url: `/events/${eventId}`,
-  }).catch(() => {});
+  // Notify organizer for "coming" RSVPs
+  if (status === "coming") {
+    sendPushToUser(event.organizer, {
+      title: `${name.trim()} s'est inscrit(e) !`,
+      body: `${name.trim()} participe à "${event.title}"`,
+      url: `/events/${eventId}`,
+    }).catch(() => {});
+  }
 
-  return { attendees };
+  const rsvps = await prisma.rsvp.findMany({ where: { eventId } });
+  return { attendees: formatRsvps(rsvps) };
+}
+
+export async function unrsvpFromEvent(eventId: string, name: string) {
+  if (!name.trim()) return { error: "Le prénom est requis." };
+
+  await prisma.rsvp
+    .delete({
+      where: { eventId_name: { eventId, name: name.trim() } },
+    })
+    .catch(() => {});
+
+  const rsvps = await prisma.rsvp.findMany({ where: { eventId } });
+  return { attendees: formatRsvps(rsvps) };
 }
 
 // ==================== COMMENTS ====================
 
-export async function addComment(eventId: string, author: string, content: string) {
+export async function addComment(
+  eventId: string,
+  author: string,
+  content: string
+) {
   if (!author.trim() || !content.trim()) {
     return { error: "Nom et message requis." };
   }
@@ -280,10 +326,13 @@ export async function addComment(eventId: string, author: string, content: strin
   });
 
   // Notify attendees + organizer
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    include: { rsvps: true },
+  });
   if (event) {
-    const attendees = JSON.parse(event.attendees) as string[];
-    const toNotify = [...new Set([event.organizer, ...attendees])].filter(
+    const names = event.rsvps.map((r) => r.name);
+    const toNotify = [...new Set([event.organizer, ...names])].filter(
       (n) => n !== author.trim()
     );
     for (const user of toNotify) {
@@ -321,6 +370,63 @@ export async function claimChecklistItem(itemId: string, username: string) {
 export async function removeChecklistItem(itemId: string) {
   await prisma.checklistItem.delete({ where: { id: itemId } });
   return { success: true };
+}
+
+// ==================== PHOTOS ====================
+
+export async function addEventPhoto(
+  eventId: string,
+  data: string,
+  author: string
+) {
+  if (!data || !author.trim()) return { error: "Photo et auteur requis." };
+
+  const photo = await prisma.eventPhoto.create({
+    data: { eventId, data, author: author.trim() },
+  });
+
+  return { photo };
+}
+
+export async function removeEventPhoto(photoId: string) {
+  await prisma.eventPhoto.delete({ where: { id: photoId } });
+  return { success: true };
+}
+
+// ==================== REMINDERS ====================
+
+export async function sendEventReminders() {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  const events = await prisma.event.findMany({
+    where: {
+      date: { gte: now, lte: tomorrow },
+      reminderSent: false,
+    },
+    include: { rsvps: true },
+  });
+
+  for (const event of events) {
+    const attendeeNames = event.rsvps
+      .filter((r) => r.status === "coming" || r.status === "maybe")
+      .map((r) => r.name);
+
+    for (const name of attendeeNames) {
+      sendPushToUser(name, {
+        title: `Rappel : ${event.title} demain !`,
+        body: `📍 ${event.location}`,
+        url: `/events/${event.id}`,
+      }).catch(() => {});
+    }
+
+    await prisma.event.update({
+      where: { id: event.id },
+      data: { reminderSent: true },
+    });
+  }
+
+  return { reminded: events.length };
 }
 
 // ==================== PUSH SUBSCRIPTIONS ====================
