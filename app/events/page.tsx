@@ -253,7 +253,12 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
     doRsvp(rsvpStatus);
   }
 
-  const isPast = new Date(event.date) < new Date();
+  const now = new Date();
+  const start = new Date(event.date);
+  const end = event.endDate ? new Date(event.endDate) : null;
+  const isPast = start < now && (!end || end < now);
+  const isHappeningNow = start <= now && end && end > now;
+  const isStartingSoon = !isPast && !isHappeningNow && start.getTime() - now.getTime() <= 2 * 60 * 60 * 1000 && start > now;
   const isFull =
     event.maxParticipants != null &&
     event.attendees.coming.length >= event.maxParticipants;
@@ -302,6 +307,21 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           {ageRange && (
             <span className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-500">
               👶 {ageRange}
+            </span>
+          )}
+          {isHappeningNow && (
+            <span className="inline-block animate-pulse rounded-full bg-mint-100 px-3 py-1 text-xs font-bold text-mint-500">
+              {t("events.happeningNow")}
+            </span>
+          )}
+          {isStartingSoon && (
+            <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-500">
+              {t("events.startingSoon")}
+            </span>
+          )}
+          {isFull && !isPast && (
+            <span className="inline-block rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-pink-500">
+              {t("events.full")}
             </span>
           )}
           {event.seriesId && (

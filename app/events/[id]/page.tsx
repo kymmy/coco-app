@@ -20,8 +20,32 @@ import {
   removeEventPhoto,
 } from "@/lib/actions";
 import { useT, useI18n } from "@/lib/i18n";
+import { useToast } from "@/lib/toast";
 
 const OUTDOOR_CATEGORIES = ["parc", "balade", "sport", "piscine"];
+
+const AVATAR_COLORS = [
+  "bg-coral-400", "bg-sky-400", "bg-mint-400", "bg-lavender-400",
+  "bg-pink-400", "bg-amber-400", "bg-coral-500", "bg-sky-500",
+];
+
+function nameToColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function Avatar({ name }: { name: string }) {
+  const initial = name.charAt(0).toUpperCase();
+  return (
+    <span
+      className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white ${nameToColor(name)}`}
+      title={name}
+    >
+      {initial}
+    </span>
+  );
+}
 
 interface Comment {
   id: string;
@@ -386,6 +410,7 @@ function PhotoGallery({
   const [isPending, startTransition] = useTransition();
   const [username, setUsername] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("coco_username");
@@ -459,8 +484,9 @@ function PhotoGallery({
               <img
                 src={photo.data}
                 alt={`Photo par ${photo.author}`}
-                className="h-40 w-full object-cover"
+                className="h-40 w-full cursor-pointer object-cover transition-transform hover:scale-105"
                 loading="lazy"
+                onClick={() => setLightboxPhoto(photo)}
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
                 <p className="text-xs font-semibold text-white">
@@ -479,6 +505,34 @@ function PhotoGallery({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setLightboxPhoto(null)}
+        >
+          <button
+            onClick={() => setLightboxPhoto(null)}
+            className="absolute top-4 right-4 rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/40"
+            aria-label="Close"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxPhoto.data}
+            alt={`Photo par ${lightboxPhoto.author}`}
+            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="absolute bottom-6 text-sm font-semibold text-white/80">
+            {lightboxPhoto.author}
+          </p>
         </div>
       )}
 
@@ -1001,6 +1055,7 @@ function ChecklistSection({
 export default function EventDetailPage() {
   const t = useT();
   const { locale } = useI18n();
+  const { toast } = useToast();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -1456,8 +1511,9 @@ export default function EventDetailPage() {
                         {event.attendees.coming.map((a) => (
                           <span
                             key={a}
-                            className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-mint-100 py-1 pl-1 pr-3 text-xs font-semibold text-mint-500"
                           >
+                            <Avatar name={a} />
                             {a}
                           </span>
                         ))}
@@ -1473,8 +1529,9 @@ export default function EventDetailPage() {
                         {event.attendees.maybe.map((a) => (
                           <span
                             key={a}
-                            className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-500"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 py-1 pl-1 pr-3 text-xs font-semibold text-amber-500"
                           >
+                            <Avatar name={a} />
                             {a}
                           </span>
                         ))}
@@ -1490,8 +1547,9 @@ export default function EventDetailPage() {
                         {event.attendees.cant.map((a) => (
                           <span
                             key={a}
-                            className="inline-block rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold text-pink-500"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-pink-100 py-1 pl-1 pr-3 text-xs font-semibold text-pink-500"
                           >
+                            <Avatar name={a} />
                             {a}
                           </span>
                         ))}
@@ -1509,8 +1567,9 @@ export default function EventDetailPage() {
                         {event.attendees.waitlist.map((a) => (
                           <span
                             key={a}
-                            className="inline-block rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-charcoal-muted"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-coral-50 py-1 pl-1 pr-3 text-xs font-semibold text-charcoal-muted"
                           >
+                            <Avatar name={a} />
                             {a}
                           </span>
                         ))}
@@ -1624,6 +1683,27 @@ export default function EventDetailPage() {
                           </button>
                         </div>
                       )}
+
+                      {/* Share buttons */}
+                      <div className="flex gap-2">
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(`${event.title} — ${new Date(event.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })} @ ${event.location}\n${window.location.href}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 rounded-full bg-[#25D366] px-4 py-2.5 text-center text-sm font-bold text-white transition-all hover:bg-[#20bd5a] active:scale-95"
+                        >
+                          {t("events.shareWhatsApp")}
+                        </a>
+                        <button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(window.location.href);
+                            toast(t("events.linkCopied"));
+                          }}
+                          className="rounded-full border-2 border-coral-200 px-4 py-2.5 text-sm font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
+                        >
+                          {t("events.copyLink")}
+                        </button>
+                      </div>
 
                       {justSubscribed && wasWaitlisted && (
                         <div className="rounded-xl bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-600">

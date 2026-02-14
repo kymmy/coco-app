@@ -5,6 +5,7 @@ import { createGroup, joinGroup, getGroups } from "@/lib/actions";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useT } from "@/lib/i18n";
+import { useToast } from "@/lib/toast";
 
 interface Group {
   id: string;
@@ -37,13 +38,12 @@ const inputClass =
 
 function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
   const t = useT();
-  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
   const joinUrl = `${window.location.origin}/groups/join/${group.code}`;
 
   async function handleCopyLink() {
     await navigator.clipboard.writeText(joinUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    toast(t("groups.linkCopied"));
   }
 
   return (
@@ -99,7 +99,7 @@ function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
               onClick={handleCopyLink}
               className="shrink-0 rounded-xl bg-coral-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-coral-400 active:scale-95"
             >
-              {copied ? t("groups.linkCopied") : t("groups.copy")}
+              {t("groups.copy")}
             </button>
           </div>
         </div>
@@ -110,6 +110,7 @@ function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
 
 export default function GroupsPage() {
   const t = useT();
+  const { toast } = useToast();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -117,8 +118,8 @@ export default function GroupsPage() {
   const [newName, setNewName] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [shareGroup, setShareGroup] = useState<Group | null>(null);
+  const [leaveConfirm, setLeaveConfirm] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -170,12 +171,12 @@ export default function GroupsPage() {
   function handleLeave(groupId: string) {
     removeGroupFromLocal(groupId);
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setLeaveConfirm(null);
   }
 
   async function handleCopyCode(code: string) {
     await navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2000);
+    toast(t("groups.copied"));
   }
 
   return (
@@ -308,12 +309,30 @@ export default function GroupsPage() {
                   <h2 className="text-lg font-extrabold text-charcoal">
                     {group.name}
                   </h2>
-                  <button
-                    onClick={() => handleLeave(group.id)}
-                    className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
-                  >
-                    {t("groups.leave")}
-                  </button>
+                  {leaveConfirm === group.id ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-pink-500">{t("groups.leaveConfirm")}</span>
+                      <button
+                        onClick={() => handleLeave(group.id)}
+                        className="rounded-full bg-pink-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-pink-400"
+                      >
+                        {t("groups.leaveYes")}
+                      </button>
+                      <button
+                        onClick={() => setLeaveConfirm(null)}
+                        className="text-xs font-semibold text-charcoal-faint hover:text-charcoal transition-colors"
+                      >
+                        {t("groups.leaveNo")}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setLeaveConfirm(group.id)}
+                      className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
+                    >
+                      {t("groups.leave")}
+                    </button>
+                  )}
                 </div>
 
                 <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -327,7 +346,7 @@ export default function GroupsPage() {
                     onClick={() => handleCopyCode(group.code)}
                     className="rounded-full border border-coral-200 px-3 py-1 text-xs font-semibold text-coral-500 hover:bg-coral-50 transition-colors"
                   >
-                    {copiedCode === group.code ? t("groups.copied") : t("groups.copy")}
+                    {t("groups.copy")}
                   </button>
                   <button
                     onClick={() => setShareGroup(group)}
