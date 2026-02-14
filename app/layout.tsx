@@ -8,6 +8,9 @@ import { Providers } from "@/lib/providers";
 const PwaInstallPrompt = dynamic(
   () => import("@/components/PwaInstallPrompt")
 );
+const OfflineIndicator = dynamic(
+  () => import("@/components/OfflineIndicator")
+);
 import "./globals.css";
 
 const nunito = Nunito({
@@ -69,6 +72,7 @@ export default function RootLayout({
           </div>
           <NotificationBanner />
           <PwaInstallPrompt />
+          <OfflineIndicator />
         </Providers>
       </body>
     </html>

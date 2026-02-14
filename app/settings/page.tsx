@@ -290,6 +290,37 @@ export default function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {/* ===== Export data ===== */}
+        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
+          <h2 className="mb-2 text-lg font-extrabold text-charcoal">
+            {t("settings.exportData")}
+          </h2>
+          <p className="mb-4 text-sm text-charcoal-muted">
+            {t("settings.exportDesc")}
+          </p>
+          <button
+            onClick={() => {
+              const data = {
+                username: localStorage.getItem("coco_username") || "",
+                groups: getJoinedGroupIds(),
+                theme: localStorage.getItem("coco_theme") || "system",
+                locale: localStorage.getItem("coco_locale") || "fr",
+                exportedAt: new Date().toISOString(),
+              };
+              const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `coco-data-${new Date().toISOString().slice(0, 10)}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="w-full rounded-full border-2 border-coral-500 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
+          >
+            {t("settings.exportButton")}
+          </button>
+        </section>
       </div>
     </main>
   );

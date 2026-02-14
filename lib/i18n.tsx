@@ -121,6 +121,7 @@ const fr: Record<string, string> = {
   "pwa.install": "Ajouter Coco \u00e0 l\u2019\u00e9cran d\u2019accueil",
   "pwa.installButton": "Installer",
   "pwa.dismiss": "Plus tard",
+  "pwa.offline": "Vous \u00eates hors connexion",
 
   // Scroll to top
   "events.scrollTop": "Remonter",
@@ -155,6 +156,8 @@ const fr: Record<string, string> = {
   "events.new": "+ Nouvelle",
   "events.search": "Rechercher...",
   "events.list": "Liste",
+  "events.sortDate": "Par date",
+  "events.sortPopular": "Populaires",
   "events.map": "Carte",
   "events.loading": "Chargement...",
   "events.joinGroup": "Rejoignez un groupe pour voir les sorties",
@@ -358,6 +361,9 @@ const fr: Record<string, string> = {
   "settings.notifEnabledMsg": "Notifications activ\u00e9es !",
   "settings.resync": "Re-synchroniser les notifications",
   "settings.enableNotif": "Activer les notifications",
+  "settings.exportData": "Exporter mes donn\u00e9es",
+  "settings.exportDesc": "T\u00e9l\u00e9charger toutes vos donn\u00e9es (groupes, pr\u00e9f\u00e9rences) au format JSON.",
+  "settings.exportButton": "T\u00e9l\u00e9charger",
   "settings.appearance": "Apparence",
   "settings.theme": "Th\u00e8me",
   "settings.light": "Clair",
@@ -517,6 +523,7 @@ const en: Record<string, string> = {
   "pwa.install": "Add Coco to home screen",
   "pwa.installButton": "Install",
   "pwa.dismiss": "Later",
+  "pwa.offline": "You are offline",
 
   // Scroll to top
   "events.scrollTop": "Back to top",
@@ -551,6 +558,8 @@ const en: Record<string, string> = {
   "events.new": "+ New",
   "events.search": "Search...",
   "events.list": "List",
+  "events.sortDate": "By date",
+  "events.sortPopular": "Popular",
   "events.map": "Map",
   "events.loading": "Loading...",
   "events.joinGroup": "Join a group to see events",
@@ -754,6 +763,9 @@ const en: Record<string, string> = {
   "settings.notifEnabledMsg": "Notifications enabled!",
   "settings.resync": "Re-sync notifications",
   "settings.enableNotif": "Enable notifications",
+  "settings.exportData": "Export my data",
+  "settings.exportDesc": "Download all your data (groups, preferences) as a JSON file.",
+  "settings.exportButton": "Download",
   "settings.appearance": "Appearance",
   "settings.theme": "Theme",
   "settings.light": "Light",

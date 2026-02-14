@@ -754,6 +754,7 @@ export default function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPast, setShowPast] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "popular">("date");
   const [view, setView] = useState<"list" | "map" | "calendar">(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("coco_view_pref");
@@ -825,7 +826,11 @@ export default function EventsPage() {
 
   const upcoming = filtered
     .filter((e) => new Date(e.date) >= now)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .sort((a, b) =>
+      sortBy === "popular"
+        ? b.attendees.coming.length - a.attendees.coming.length
+        : new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
   const past = filtered
     .filter((e) => new Date(e.date) < now)
@@ -902,6 +907,21 @@ export default function EventsPage() {
                 {t("events.map")}
               </button>
             )}
+          </div>
+
+          <div className="flex rounded-full border-2 border-coral-200 bg-card overflow-hidden">
+            <button
+              onClick={() => setSortBy("date")}
+              className={`px-3 py-2 text-xs font-semibold transition-colors ${sortBy === "date" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
+            >
+              {t("events.sortDate")}
+            </button>
+            <button
+              onClick={() => setSortBy("popular")}
+              className={`px-3 py-2 text-xs font-semibold transition-colors ${sortBy === "popular" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
+            >
+              {t("events.sortPopular")}
+            </button>
           </div>
         </div>
 
