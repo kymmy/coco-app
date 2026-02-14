@@ -44,9 +44,9 @@ export default function SocialProof() {
 
         <div className="grid gap-8 md:grid-cols-3">
           {stats.map((stat) => (
-            <div
+            <article
               key={stat.label}
-              className={`rounded-3xl border ${stat.border} ${stat.bg} p-8 text-center shadow-sm transition-shadow hover:shadow-md`}
+              className={`rounded-3xl border ${stat.border} ${stat.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
             >
               <div className={`mb-2 text-4xl font-extrabold ${stat.accent}`}>
                 {stat.value}
@@ -55,7 +55,7 @@ export default function SocialProof() {
                 {stat.label}
               </div>
               <p className="text-sm text-charcoal-muted">{stat.description}</p>
-            </div>
+            </article>
           ))}
         </div>
       </div>

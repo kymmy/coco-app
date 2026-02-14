@@ -48,9 +48,9 @@ export default function Community() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           {bullets.map((bullet) => (
-            <div
+            <article
               key={bullet.emoji}
-              className={`flex gap-4 rounded-3xl border ${bullet.border} ${bullet.bg} p-5 shadow-sm transition-shadow hover:shadow-md`}
+              className={`flex gap-4 rounded-3xl border ${bullet.border} ${bullet.bg} p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
             >
               <div className="mt-0.5 text-3xl">{bullet.emoji}</div>
               <div>
@@ -59,7 +59,7 @@ export default function Community() {
                 </h3>
                 <p className="text-charcoal-muted">{bullet.description}</p>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 

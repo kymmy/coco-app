@@ -47,9 +47,9 @@ export default function HowItWorks() {
 
         <div className="grid gap-8 md:grid-cols-3">
           {steps.map((step) => (
-            <div
+            <article
               key={step.number}
-              className={`relative rounded-3xl ${step.bg} p-8 text-center shadow-sm transition-shadow hover:shadow-md`}
+              className={`relative rounded-3xl ${step.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
             >
               <div
                 className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${step.bubbleBg} text-2xl font-extrabold text-white shadow-md`}
@@ -64,7 +64,7 @@ export default function HowItWorks() {
               </h3>
 
               <p className="text-charcoal-muted">{step.description}</p>
-            </div>
+            </article>
           ))}
         </div>
       </div>

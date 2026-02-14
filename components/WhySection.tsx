@@ -50,7 +50,7 @@ export default function WhySection() {
           {painPoints.map((point) => (
             <div
               key={point.emoji}
-              className={`rounded-3xl border ${point.border} ${point.bg} p-6 shadow-sm transition-shadow hover:shadow-md`}
+              className={`rounded-3xl border ${point.border} ${point.bg} p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
             >
               <div className="mb-4 text-4xl">{point.emoji}</div>
               <h3 className="mb-2 text-lg font-bold text-charcoal">
