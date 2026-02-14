@@ -153,7 +153,9 @@ function formatRsvps(rsvps: { name: string; status: string }[]) {
 
 export async function getEvents(groupIds?: string[]) {
   const where =
-    groupIds && groupIds.length > 0 ? { groupId: { in: groupIds } } : {};
+    groupIds && groupIds.length > 0
+      ? { OR: [{ groupId: { in: groupIds } }, { groupId: null }] }
+      : {};
 
   const events = await prisma.event.findMany({
     where,
