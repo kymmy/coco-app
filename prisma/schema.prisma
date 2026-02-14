@@ -42,6 +42,7 @@ model Event {
   createdAt       DateTime        @default(now())
   attendees       String          @default("[]") // JSON array of names (legacy)
   reminderSent    Boolean         @default(false)
+  deletedAt       DateTime?
   comments        Comment[]
   checklist       ChecklistItem[]
   rsvps           Rsvp[]
@@ -82,6 +83,7 @@ model ChecklistItem {
   event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   label     String
   claimedBy String?
+  quantity  Int     @default(1)
 }
 
 model PushSubscription {

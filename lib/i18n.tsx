@@ -330,6 +330,47 @@ const fr: Record<string, string> = {
   "map.noGpsEvents": "Aucun \u00e9v\u00e9nement avec coordonn\u00e9es GPS.",
   "map.viewDetails": "Voir les d\u00e9tails \u2192",
   "map.participants": "{0} participant{1}",
+
+  // Share
+  "share.whatsapp": "Partager sur WhatsApp",
+  "share.copyLink": "Copier le lien",
+  "share.copied": "Lien copi\u00e9 !",
+
+  // Waitlist
+  "events.joinWaitlist": "Liste d\u2019attente \u23f3",
+  "events.onWaitlist": "Vous \u00eates sur la liste d\u2019attente",
+  "events.waitlistCount": "{0} en attente",
+
+  // Pagination
+  "events.loadMore": "Voir plus de sorties",
+  "events.showingCount": "{0} sur {1} sorties",
+
+  // Calendar view
+  "events.calendar": "Calendrier",
+  "events.noEventsThisDay": "Aucune sortie ce jour",
+
+  // Comment deletion
+  "comments.delete": "Supprimer",
+  "comments.deleted": "Comment supprim\u00e9",
+
+  // Checklist quantities
+  "checklist.quantity": "Quantit\u00e9",
+
+  // Series management
+  "detail.deleteSeries": "Supprimer la s\u00e9rie",
+  "detail.deleteSeriesConfirm": "Supprimer toutes les sorties de cette s\u00e9rie ?",
+  "detail.yesDeleteSeries": "Oui, tout supprimer",
+
+  // Error boundary
+  "error.title": "Oups, quelque chose s\u2019est mal pass\u00e9",
+  "error.description": "Une erreur inattendue est survenue.",
+  "error.retry": "R\u00e9essayer",
+
+  // Unsaved changes
+  "create.unsavedWarning": "Vous avez des modifications non enregistr\u00e9es. Voulez-vous vraiment quitter ?",
+
+  // Landing page
+  "hero.ctaViewEvents": "Voir les sorties",
 };
 
 // ---------------------------------------------------------------------------
@@ -640,6 +681,47 @@ const en: Record<string, string> = {
   "map.noGpsEvents": "No events with GPS coordinates.",
   "map.viewDetails": "View details \u2192",
   "map.participants": "{0} participant{1}",
+
+  // Share
+  "share.whatsapp": "Share on WhatsApp",
+  "share.copyLink": "Copy link",
+  "share.copied": "Link copied!",
+
+  // Waitlist
+  "events.joinWaitlist": "Join waitlist \u23f3",
+  "events.onWaitlist": "You\u2019re on the waitlist",
+  "events.waitlistCount": "{0} on waitlist",
+
+  // Pagination
+  "events.loadMore": "Load more events",
+  "events.showingCount": "{0} of {1} events",
+
+  // Calendar view
+  "events.calendar": "Calendar",
+  "events.noEventsThisDay": "No events this day",
+
+  // Comment deletion
+  "comments.delete": "Delete",
+  "comments.deleted": "Comment deleted",
+
+  // Checklist quantities
+  "checklist.quantity": "Quantity",
+
+  // Series management
+  "detail.deleteSeries": "Delete series",
+  "detail.deleteSeriesConfirm": "Delete all events in this series?",
+  "detail.yesDeleteSeries": "Yes, delete all",
+
+  // Error boundary
+  "error.title": "Oops, something went wrong",
+  "error.description": "An unexpected error occurred.",
+  "error.retry": "Try again",
+
+  // Unsaved changes
+  "create.unsavedWarning": "You have unsaved changes. Are you sure you want to leave?",
+
+  // Landing page
+  "hero.ctaViewEvents": "View events",
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = { fr, en };

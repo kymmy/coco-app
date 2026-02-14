@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Hero from "@/components/Hero";
 import WhySection from "@/components/WhySection";
 import HowItWorks from "@/components/HowItWorks";
@@ -45,6 +46,14 @@ export default function Home() {
       <FinalCTA />
 
       <footer className="bg-cream px-6 py-8 text-center text-sm text-charcoal-faint">
+        <div className="mb-4">
+          <Link
+            href="/events"
+            className="inline-flex items-center rounded-full border-2 border-coral-200 px-6 py-2.5 text-sm font-bold text-coral-500 transition-all hover:bg-coral-50 hover:shadow-md active:scale-95"
+          >
+            {t("hero.ctaViewEvents")} <span className="ml-2">🎈</span>
+          </Link>
+        </div>
         <p>{t("footer.text", new Date().getFullYear())}</p>
       </footer>
     </main>

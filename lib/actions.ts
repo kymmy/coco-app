@@ -4,6 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { sendPushToGroup, sendPushToUser } from "@/lib/push";
 
+// ==================== HELPERS ====================
+
+/** Strip HTML tags from user input to prevent XSS */
+function sanitize(input: string): string {
+  return input.replace(/<[^>]*>/g, "").trim();
+}
+
 // ==================== GROUPS ====================
 
 function generateCode(): string {
@@ -26,7 +33,7 @@ export async function createGroup(name: string) {
   }
 
   const group = await prisma.group.create({
-    data: { name: name.trim(), code },
+    data: { name: sanitize(name), code },
   });
 
   return { group };
@@ -80,17 +87,17 @@ export async function createEvent(formData: FormData) {
   }
 
   const baseData = {
-    title,
-    location,
+    title: sanitize(title),
+    location: sanitize(location),
     latitude: latitude ? parseFloat(latitude) : null,
     longitude: longitude ? parseFloat(longitude) : null,
     eventLink: eventLink || "",
-    description,
+    description: sanitize(description),
     image: image || null,
     category: category || "autre",
     price: price || "Gratuit",
     maxParticipants: maxParticipants ? parseInt(maxParticipants, 10) : null,
-    organizer,
+    organizer: sanitize(organizer),
     ageMin: ageMin ? parseInt(ageMin, 10) : null,
     ageMax: ageMax ? parseInt(ageMax, 10) : null,
     groupId: groupId || null,
@@ -134,8 +141,8 @@ export async function createEvent(formData: FormData) {
   // Push notification to group members
   if (groupId) {
     sendPushToGroup(groupId, {
-      title: `Nouvelle sortie : ${title}`,
-      body: `${organizer} propose "${title}" — ${location}`,
+      title: `Nouvelle sortie : ${sanitize(title)}`,
+      body: `${sanitize(organizer)} propose "${sanitize(title)}" — ${sanitize(location)}`,
       url: "/events",
     }).catch(() => {});
   }
@@ -148,17 +155,18 @@ function formatRsvps(rsvps: { name: string; status: string }[]) {
     coming: rsvps.filter((r) => r.status === "coming").map((r) => r.name),
     maybe: rsvps.filter((r) => r.status === "maybe").map((r) => r.name),
     cant: rsvps.filter((r) => r.status === "cant").map((r) => r.name),
+    waitlist: rsvps.filter((r) => r.status === "waitlist").map((r) => r.name),
   };
 }
 
 export async function getEvents(groupIds?: string[]) {
-  const where =
+  const groupFilter =
     groupIds && groupIds.length > 0
       ? { OR: [{ groupId: { in: groupIds } }, { groupId: null }] }
       : {};
 
   const events = await prisma.event.findMany({
-    where,
+    where: { ...groupFilter, deletedAt: null },
     orderBy: { date: "asc" },
     include: { group: true, rsvps: true },
   });
@@ -171,8 +179,8 @@ export async function getEvents(groupIds?: string[]) {
 }
 
 export async function getEvent(id: string) {
-  const event = await prisma.event.findUnique({
-    where: { id },
+  const event = await prisma.event.findFirst({
+    where: { id, deletedAt: null },
     include: {
       comments: { orderBy: { createdAt: "asc" } },
       checklist: true,
@@ -218,19 +226,19 @@ export async function updateEvent(id: string, formData: FormData) {
   await prisma.event.update({
     where: { id },
     data: {
-      title,
+      title: sanitize(title),
       date: new Date(date),
       endDate: endDate ? new Date(endDate) : null,
-      location,
+      location: sanitize(location),
       latitude: latitude ? parseFloat(latitude) : null,
       longitude: longitude ? parseFloat(longitude) : null,
       eventLink: eventLink || "",
-      description,
+      description: sanitize(description),
       image: finalImage,
       category: category || "autre",
       price: price || "Gratuit",
       maxParticipants: maxParticipants ? parseInt(maxParticipants, 10) : null,
-      organizer,
+      organizer: sanitize(organizer),
       ageMin: ageMin ? parseInt(ageMin, 10) : null,
       ageMax: ageMax ? parseInt(ageMax, 10) : null,
     },
@@ -240,7 +248,18 @@ export async function updateEvent(id: string, formData: FormData) {
 }
 
 export async function deleteEvent(id: string) {
-  await prisma.event.delete({ where: { id } });
+  await prisma.event.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+  redirect("/events");
+}
+
+export async function deleteEventSeries(seriesId: string) {
+  await prisma.event.updateMany({
+    where: { seriesId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
   redirect("/events");
 }
 
@@ -253,6 +272,8 @@ export async function rsvpToEvent(
 ) {
   if (!name.trim()) return { error: "Le prénom est requis." };
 
+  const cleanName = sanitize(name);
+
   const event = await prisma.event.findUnique({
     where: { id: eventId },
     include: { rsvps: true },
@@ -261,48 +282,91 @@ export async function rsvpToEvent(
 
   const comingCount = event.rsvps.filter((r) => r.status === "coming").length;
   const existingRsvp = event.rsvps.find(
-    (r) => r.name.toLowerCase() === name.trim().toLowerCase()
+    (r) => r.name.toLowerCase() === cleanName.toLowerCase()
   );
 
-  // Check capacity for new "coming" RSVPs
+  // Check capacity for new "coming" RSVPs — put on waitlist if full
+  let finalStatus: string = status;
   if (
     status === "coming" &&
     event.maxParticipants &&
     comingCount >= event.maxParticipants &&
     (!existingRsvp || existingRsvp.status !== "coming")
   ) {
-    return { error: "Cette sortie est complète." };
+    finalStatus = "waitlist";
   }
 
   await prisma.rsvp.upsert({
     where: {
-      eventId_name: { eventId, name: name.trim() },
+      eventId_name: { eventId, name: cleanName },
     },
-    update: { status },
-    create: { eventId, name: name.trim(), status },
+    update: { status: finalStatus },
+    create: { eventId, name: cleanName, status: finalStatus },
   });
 
   // Notify organizer for "coming" RSVPs
-  if (status === "coming") {
+  if (finalStatus === "coming") {
     sendPushToUser(event.organizer, {
-      title: `${name.trim()} s'est inscrit(e) !`,
-      body: `${name.trim()} participe à "${event.title}"`,
+      title: `${cleanName} s'est inscrit(e) !`,
+      body: `${cleanName} participe à "${event.title}"`,
       url: `/events/${eventId}`,
     }).catch(() => {});
   }
 
   const rsvps = await prisma.rsvp.findMany({ where: { eventId } });
-  return { attendees: formatRsvps(rsvps) };
+  return {
+    attendees: formatRsvps(rsvps),
+    wasWaitlisted: finalStatus === "waitlist",
+  };
 }
 
 export async function unrsvpFromEvent(eventId: string, name: string) {
   if (!name.trim()) return { error: "Le prénom est requis." };
 
+  const cleanName = sanitize(name);
+
+  // Check if the user being removed was "coming"
+  const removedRsvp = await prisma.rsvp
+    .findUnique({
+      where: { eventId_name: { eventId, name: cleanName } },
+    })
+    .catch(() => null);
+
   await prisma.rsvp
     .delete({
-      where: { eventId_name: { eventId, name: name.trim() } },
+      where: { eventId_name: { eventId, name: cleanName } },
     })
     .catch(() => {});
+
+  // Promote first waitlisted user if a "coming" user left
+  if (removedRsvp?.status === "coming") {
+    const event = await prisma.event.findUnique({ where: { id: eventId } });
+    if (event?.maxParticipants) {
+      const currentComing = await prisma.rsvp.count({
+        where: { eventId, status: "coming" },
+      });
+
+      if (currentComing < event.maxParticipants) {
+        const firstWaitlisted = await prisma.rsvp.findFirst({
+          where: { eventId, status: "waitlist" },
+          orderBy: { id: "asc" },
+        });
+
+        if (firstWaitlisted) {
+          await prisma.rsvp.update({
+            where: { id: firstWaitlisted.id },
+            data: { status: "coming" },
+          });
+
+          sendPushToUser(firstWaitlisted.name, {
+            title: "Une place s'est libérée !",
+            body: `Vous êtes maintenant inscrit(e) à "${event.title}"`,
+            url: `/events/${eventId}`,
+          }).catch(() => {});
+        }
+      }
+    }
+  }
 
   const rsvps = await prisma.rsvp.findMany({ where: { eventId } });
   return { attendees: formatRsvps(rsvps) };
@@ -319,11 +383,14 @@ export async function addComment(
     return { error: "Nom et message requis." };
   }
 
+  const cleanAuthor = sanitize(author);
+  const cleanContent = sanitize(content);
+
   const comment = await prisma.comment.create({
     data: {
       eventId,
-      author: author.trim(),
-      content: content.trim(),
+      author: cleanAuthor,
+      content: cleanContent,
     },
   });
 
@@ -335,12 +402,12 @@ export async function addComment(
   if (event) {
     const names = event.rsvps.map((r) => r.name);
     const toNotify = [...new Set([event.organizer, ...names])].filter(
-      (n) => n !== author.trim()
+      (n) => n !== cleanAuthor
     );
     for (const user of toNotify) {
       sendPushToUser(user, {
-        title: `Nouveau message de ${author.trim()}`,
-        body: content.trim().slice(0, 100),
+        title: `Nouveau message de ${cleanAuthor}`,
+        body: cleanContent.slice(0, 100),
         url: `/events/${eventId}`,
       }).catch(() => {});
     }
@@ -349,13 +416,26 @@ export async function addComment(
   return { comment };
 }
 
+export async function deleteComment(commentId: string) {
+  await prisma.comment.delete({ where: { id: commentId } });
+  return { success: true };
+}
+
 // ==================== CHECKLIST ====================
 
-export async function addChecklistItem(eventId: string, label: string) {
+export async function addChecklistItem(
+  eventId: string,
+  label: string,
+  quantity: number = 1
+) {
   if (!label.trim()) return { error: "Intitulé requis." };
 
   const item = await prisma.checklistItem.create({
-    data: { eventId, label: label.trim() },
+    data: {
+      eventId,
+      label: sanitize(label),
+      quantity: Math.max(1, Math.min(quantity, 99)),
+    },
   });
 
   return { item };
@@ -364,7 +444,7 @@ export async function addChecklistItem(eventId: string, label: string) {
 export async function claimChecklistItem(itemId: string, username: string) {
   const item = await prisma.checklistItem.update({
     where: { id: itemId },
-    data: { claimedBy: username || null },
+    data: { claimedBy: username ? sanitize(username) : null },
   });
   return { item };
 }
@@ -384,7 +464,7 @@ export async function addEventPhoto(
   if (!data || !author.trim()) return { error: "Photo et auteur requis." };
 
   const photo = await prisma.eventPhoto.create({
-    data: { eventId, data, author: author.trim() },
+    data: { eventId, data, author: sanitize(author) },
   });
 
   return { photo };
@@ -405,6 +485,7 @@ export async function sendEventReminders() {
     where: {
       date: { gte: now, lte: tomorrow },
       reminderSent: false,
+      deletedAt: null,
     },
     include: { rsvps: true },
   });

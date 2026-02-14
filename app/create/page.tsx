@@ -142,6 +142,7 @@ function CreateEventForm() {
   const [recurrence, setRecurrence] = useState("none");
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
   const [defaults, setDefaults] = useState<EventDefaults | null>(
     duplicateId ? null : {
       title: "",
@@ -223,6 +224,17 @@ function CreateEventForm() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [handleClickOutside]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (isDirty && !isPending) {
+        e.preventDefault();
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty, isPending]);
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -312,7 +324,7 @@ function CreateEventForm() {
             </div>
           )}
 
-          <form action={handleSubmit} className="space-y-6" key={duplicateId || "new"}>
+          <form action={handleSubmit} className="space-y-6" key={duplicateId || "new"} onChange={() => !isDirty && setIsDirty(true)}>
             {/* Title */}
             <div>
               <label htmlFor="title" className="mb-1 block text-sm font-bold text-charcoal">

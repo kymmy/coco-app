@@ -5,6 +5,8 @@ import { getEvents, rsvpToEvent, unrsvpFromEvent } from "@/lib/actions";
 import Link from "next/link";
 import { useT, useI18n } from "@/lib/i18n";
 
+const EVENTS_PER_PAGE = 10;
+
 interface CocoEvent {
   id: string;
   title: string;
@@ -26,7 +28,7 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: { coming: string[]; maybe: string[]; cant: string[] };
+  attendees: { coming: string[]; maybe: string[]; cant: string[]; waitlist: string[] };
 }
 
 function formatDate(date: Date, locale: string): string {
@@ -87,9 +89,52 @@ function isUserInAttendees(
   return (
     attendees.coming.some((n) => n.toLowerCase() === lower) ||
     attendees.maybe.some((n) => n.toLowerCase() === lower) ||
-    attendees.cant.some((n) => n.toLowerCase() === lower)
+    attendees.cant.some((n) => n.toLowerCase() === lower) ||
+    attendees.waitlist.some((n) => n.toLowerCase() === lower)
   );
 }
+
+// ---------- Share Button ----------
+
+function ShareButton({ event }: { event: CocoEvent }) {
+  const t = useT();
+  const [copied, setCopied] = useState(false);
+
+  const eventUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/events/${event.id}`
+    : `/events/${event.id}`;
+  const shareText = `${event.title} — ${event.location}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${eventUrl}`)}`;
+
+  async function handleCopyLink() {
+    await navigator.clipboard.writeText(eventUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="flex gap-1.5">
+      <a
+        href={whatsappUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-bold text-white transition-all hover:opacity-90 active:scale-95"
+        title={t("share.whatsapp")}
+      >
+        WhatsApp
+      </a>
+      <button
+        onClick={handleCopyLink}
+        className="rounded-full border border-coral-200 px-3 py-1.5 text-xs font-semibold text-charcoal-muted transition-all hover:bg-coral-50 active:scale-95"
+        title={t("share.copyLink")}
+      >
+        {copied ? t("share.copied") : t("share.copyLink")}
+      </button>
+    </div>
+  );
+}
+
+// ---------- Event Card ----------
 
 function EventCard({ event: initial }: { event: CocoEvent }) {
   const t = useT();
@@ -101,6 +146,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   );
   const [name, setName] = useState("");
   const [justSubscribed, setJustSubscribed] = useState(false);
+  const [wasWaitlisted, setWasWaitlisted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
@@ -130,12 +176,9 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
     isUserInAttendees(event.attendees, storedUsername);
 
   function handleRsvp(status: "coming" | "maybe") {
-    // If name already stored, just set the status and ask for name input
     if (name.trim()) {
-      // We have a name, proceed directly
       doRsvp(status);
     } else {
-      // Show name input first
       setRsvpStatus(status);
       setShowSubscribe(true);
     }
@@ -153,6 +196,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         setShowSubscribe(false);
         setRsvpStatus(null);
         setJustSubscribed(true);
+        setWasWaitlisted(result.wasWaitlisted || false);
         setSubscribeError(null);
       }
     });
@@ -168,6 +212,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
       } else {
         setEvent((prev) => ({ ...prev, attendees: result.attendees! }));
         setJustSubscribed(false);
+        setWasWaitlisted(false);
         setSubscribeError(null);
       }
     });
@@ -199,6 +244,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
             src={event.image}
             alt={event.title}
             className="h-48 w-full object-cover"
+            loading="lazy"
           />
         )}
       </Link>
@@ -276,6 +322,11 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           </a>
         )}
 
+        {/* Share buttons */}
+        <div className="mb-4">
+          <ShareButton event={event} />
+        </div>
+
         {/* Participants */}
         <div className="mb-4">
           <p className="mb-1 text-xs font-bold text-charcoal-muted uppercase">
@@ -331,6 +382,25 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               </div>
             </div>
           )}
+
+          {/* Waitlist */}
+          {event.attendees.waitlist.length > 0 && (
+            <div className="mt-1">
+              <p className="text-[10px] font-semibold text-charcoal-muted uppercase mb-0.5">
+                {t("events.waitlistCount", event.attendees.waitlist.length)}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {event.attendees.waitlist.map((a) => (
+                  <span
+                    key={a}
+                    className="inline-block rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-charcoal-muted"
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {subscribeError && (
@@ -373,9 +443,18 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                 </div>
               )}
 
+            {/* Full: show waitlist button */}
             {isFull && !alreadyRegistered && !justSubscribed && (
-              <div className="rounded-xl bg-pink-50 px-4 py-3 text-center text-sm font-semibold text-pink-500">
-                {t("events.eventFull")}
+              <div className="space-y-2">
+                <div className="rounded-xl bg-pink-50 px-4 py-3 text-center text-sm font-semibold text-pink-500">
+                  {t("events.eventFull")}
+                </div>
+                <button
+                  onClick={() => handleRsvp("coming")}
+                  className="w-full rounded-full border-2 border-coral-300 bg-coral-50 px-6 py-3 font-bold text-coral-500 shadow transition-all hover:bg-coral-100 active:scale-95"
+                >
+                  {t("events.joinWaitlist")}
+                </button>
               </div>
             )}
 
@@ -409,7 +488,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               </div>
             )}
 
-            {justSubscribed && (
+            {justSubscribed && !wasWaitlisted && (
               <a
                 href={buildGoogleCalendarUrl(event)}
                 target="_blank"
@@ -418,6 +497,12 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               >
                 {t("events.addGCal")}
               </a>
+            )}
+
+            {justSubscribed && wasWaitlisted && (
+              <div className="rounded-xl bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-600">
+                {t("events.onWaitlist")}
+              </div>
             )}
           </div>
         )}
@@ -434,6 +519,164 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   );
 }
 
+// ---------- Calendar View ----------
+
+function CalendarView({ events }: { events: CocoEvent[] }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const daysInMonth = lastDay.getDate();
+
+  const monthLabel = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
+    month: "long",
+    year: "numeric",
+  }).format(currentMonth);
+
+  const dayNames = locale === "en"
+    ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    : ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+
+  // Map events by day
+  const eventsByDay: Record<number, CocoEvent[]> = {};
+  for (const event of events) {
+    const d = new Date(event.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const day = d.getDate();
+      if (!eventsByDay[day]) eventsByDay[day] = [];
+      eventsByDay[day].push(event);
+    }
+  }
+
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const selectedEvents = selectedDay ? eventsByDay[selectedDay] || [] : [];
+
+  function prevMonth() {
+    setCurrentMonth(new Date(year, month - 1, 1));
+    setSelectedDay(null);
+  }
+
+  function nextMonth() {
+    setCurrentMonth(new Date(year, month + 1, 1));
+    setSelectedDay(null);
+  }
+
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+  return (
+    <div className="rounded-3xl bg-card p-6 shadow-md">
+      {/* Header */}
+      <div className="mb-4 flex items-center justify-between">
+        <button
+          onClick={prevMonth}
+          className="rounded-full p-2 text-charcoal-muted hover:bg-coral-50 transition-colors"
+        >
+          &larr;
+        </button>
+        <h3 className="text-lg font-extrabold text-charcoal capitalize">
+          {monthLabel}
+        </h3>
+        <button
+          onClick={nextMonth}
+          className="rounded-full p-2 text-charcoal-muted hover:bg-coral-50 transition-colors"
+        >
+          &rarr;
+        </button>
+      </div>
+
+      {/* Day names */}
+      <div className="mb-2 grid grid-cols-7 gap-1 text-center">
+        {dayNames.map((d) => (
+          <div key={d} className="text-xs font-bold text-charcoal-muted py-1">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: startOffset }).map((_, i) => (
+          <div key={`empty-${i}`} />
+        ))}
+        {Array.from({ length: daysInMonth }).map((_, i) => {
+          const day = i + 1;
+          const dayEvents = eventsByDay[day] || [];
+          const isToday = isCurrentMonth && today.getDate() === day;
+          const isSelected = selectedDay === day;
+
+          return (
+            <button
+              key={day}
+              onClick={() => setSelectedDay(isSelected ? null : day)}
+              className={`relative flex flex-col items-center rounded-xl py-2 text-sm font-semibold transition-colors ${
+                isSelected
+                  ? "bg-coral-500 text-white"
+                  : isToday
+                    ? "bg-coral-100 text-coral-500"
+                    : dayEvents.length > 0
+                      ? "bg-coral-50 text-charcoal hover:bg-coral-100"
+                      : "text-charcoal-muted hover:bg-card-hover"
+              }`}
+            >
+              {day}
+              {dayEvents.length > 0 && (
+                <div className="mt-0.5 flex gap-0.5">
+                  {dayEvents.slice(0, 3).map((_, j) => (
+                    <span
+                      key={j}
+                      className={`h-1 w-1 rounded-full ${isSelected ? "bg-white" : "bg-coral-500"}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Selected day events */}
+      {selectedDay !== null && (
+        <div className="mt-4 border-t border-coral-100 pt-4">
+          {selectedEvents.length === 0 ? (
+            <p className="text-sm text-charcoal-muted text-center">
+              {t("events.noEventsThisDay")}
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {selectedEvents.map((event) => (
+                <Link
+                  key={event.id}
+                  href={`/events/${event.id}`}
+                  className="block rounded-2xl bg-coral-50 px-4 py-3 transition-colors hover:bg-coral-100"
+                >
+                  <p className="text-sm font-bold text-charcoal">
+                    {event.title}
+                  </p>
+                  <p className="text-xs text-charcoal-muted">
+                    📍 {event.location} — {formatDate(event.date, locale)}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- Main Page ----------
+
 export default function EventsPage() {
   const t = useT();
   const { locale } = useI18n();
@@ -442,8 +685,9 @@ export default function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPast, setShowPast] = useState(false);
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"list" | "map" | "calendar">("list");
   const [hasGroups, setHasGroups] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(EVENTS_PER_PAGE);
 
   const CATEGORY_LABELS: Record<string, string> = {
     parc: t("cat.parc"),
@@ -470,6 +714,11 @@ export default function EventsPage() {
     });
   }, []);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(EVENTS_PER_PAGE);
+  }, [categoryFilter, searchQuery]);
+
   const now = new Date();
   const filtered = allEvents.filter((e) => {
     if (categoryFilter && e.category !== categoryFilter) return false;
@@ -492,6 +741,9 @@ export default function EventsPage() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const hasGeoEvents = allEvents.some((e) => e.latitude && e.longitude);
+
+  const visibleUpcoming = upcoming.slice(0, visibleCount);
+  const hasMore = upcoming.length > visibleCount;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
@@ -538,22 +790,28 @@ export default function EventsPage() {
             ))}
           </select>
 
-          {hasGeoEvents && (
-            <div className="flex rounded-full border-2 border-coral-200 bg-card overflow-hidden">
-              <button
-                onClick={() => setView("list")}
-                className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "list" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
-              >
-                {t("events.list")}
-              </button>
+          <div className="flex rounded-full border-2 border-coral-200 bg-card overflow-hidden">
+            <button
+              onClick={() => setView("list")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "list" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
+            >
+              {t("events.list")}
+            </button>
+            <button
+              onClick={() => setView("calendar")}
+              className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "calendar" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
+            >
+              {t("events.calendar")}
+            </button>
+            {hasGeoEvents && (
               <button
                 onClick={() => setView("map")}
                 className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "map" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
               >
                 {t("events.map")}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {loading ? (
@@ -594,6 +852,8 @@ export default function EventsPage() {
           </div>
         ) : view === "map" ? (
           <MapView events={upcoming} />
+        ) : view === "calendar" ? (
+          <CalendarView events={[...upcoming, ...past]} />
         ) : (
           <>
             {/* Upcoming events */}
@@ -606,11 +866,26 @@ export default function EventsPage() {
               </div>
             )}
 
-            {upcoming.length > 0 && (
+            {visibleUpcoming.length > 0 && (
               <div className="mb-8 space-y-6">
-                {upcoming.map((event) => (
+                {visibleUpcoming.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
+              </div>
+            )}
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="mb-8 text-center">
+                <p className="mb-2 text-xs text-charcoal-muted">
+                  {t("events.showingCount", visibleCount, upcoming.length)}
+                </p>
+                <button
+                  onClick={() => setVisibleCount((c) => c + EVENTS_PER_PAGE)}
+                  className="rounded-full border-2 border-coral-200 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
+                >
+                  {t("events.loadMore")}
+                </button>
               </div>
             )}
 

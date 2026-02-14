@@ -7,9 +7,11 @@ import {
   getEvent,
   updateEvent,
   deleteEvent,
+  deleteEventSeries,
   rsvpToEvent,
   unrsvpFromEvent,
   addComment,
+  deleteComment,
   addChecklistItem,
   claimChecklistItem,
   removeChecklistItem,
@@ -31,6 +33,7 @@ interface ChecklistItemType {
   id: string;
   label: string;
   claimedBy: string | null;
+  quantity: number;
 }
 
 interface EventPhoto {
@@ -61,7 +64,7 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: { coming: string[]; maybe: string[]; cant: string[] };
+  attendees: { coming: string[]; maybe: string[]; cant: string[]; waitlist: string[] };
   photos: EventPhoto[];
   comments: Comment[];
   checklist: ChecklistItemType[];
@@ -162,7 +165,7 @@ function downloadICS(event: CocoEvent) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${event.title.replace(/[^a-zA-Z0-9À-ÿ ]/g, "").replace(/\s+/g, "_")}.ics`;
+  link.download = `${event.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g, "").replace(/\s+/g, "_")}.ics`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -190,16 +193,16 @@ function weatherCodeToLabel(code: number, t: Function): string {
 }
 
 function weatherCodeToEmoji(code: number): string {
-  if (code === 0) return "☀️";
-  if (code <= 3) return "⛅";
-  if (code <= 48) return "🌫️";
-  if (code <= 57) return "🌧️";
-  if (code <= 67) return "🌧️";
-  if (code <= 77) return "🌨️";
-  if (code <= 82) return "🌦️";
-  if (code <= 86) return "🌨️";
-  if (code <= 99) return "⛈️";
-  return "🌡️";
+  if (code === 0) return "\u2600\uFE0F";
+  if (code <= 3) return "\u26C5";
+  if (code <= 48) return "\uD83C\uDF2B\uFE0F";
+  if (code <= 57) return "\uD83C\uDF27\uFE0F";
+  if (code <= 67) return "\uD83C\uDF27\uFE0F";
+  if (code <= 77) return "\uD83C\uDF28\uFE0F";
+  if (code <= 82) return "\uD83C\uDF26\uFE0F";
+  if (code <= 86) return "\uD83C\uDF28\uFE0F";
+  if (code <= 99) return "\u26C8\uFE0F";
+  return "\uD83C\uDF21\uFE0F";
 }
 
 function compressImage(
@@ -354,7 +357,7 @@ function WeatherPreview({
       <span className="text-2xl">{weatherCodeToEmoji(weather.weatherCode)}</span>
       <div>
         <p className="text-sm font-bold text-sky-700">
-          {weather.tempMin}° / {weather.tempMax}°C
+          {weather.tempMin}&deg; / {weather.tempMax}&deg;C
         </p>
         <p className="text-xs text-sky-500">
           {weatherCodeToLabel(weather.weatherCode, t)}
@@ -454,6 +457,7 @@ function PhotoGallery({
                 src={photo.data}
                 alt={`Photo par ${photo.author}`}
                 className="h-40 w-full object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 py-2">
                 <p className="text-xs font-semibold text-white">
@@ -707,6 +711,15 @@ function CommentSection({
     });
   }
 
+  function handleDelete(commentId: string) {
+    startTransition(async () => {
+      await deleteComment(commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    });
+  }
+
+  const currentUser = typeof window !== "undefined" ? localStorage.getItem("coco_username") || "" : "";
+
   return (
     <div>
       <h3 className="mb-4 text-lg font-extrabold text-charcoal">
@@ -721,9 +734,21 @@ function CommentSection({
                 <span className="text-sm font-bold text-charcoal">
                   {c.author}
                 </span>
-                <span className="text-xs text-charcoal-faint">
-                  {formatCommentDate(c.createdAt, locale)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-charcoal-faint">
+                    {formatCommentDate(c.createdAt, locale)}
+                  </span>
+                  {currentUser && currentUser.toLowerCase() === c.author.toLowerCase() && (
+                    <button
+                      onClick={() => handleDelete(c.id)}
+                      disabled={isPending}
+                      className="text-xs text-charcoal-faint hover:text-pink-500 transition-colors disabled:opacity-50"
+                      title={t("comments.delete")}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
               <p className="text-sm text-charcoal-light">{c.content}</p>
             </div>
@@ -781,6 +806,7 @@ function ChecklistSection({
   const t = useT();
   const [items, setItems] = useState(initialChecklist);
   const [newLabel, setNewLabel] = useState("");
+  const [newQuantity, setNewQuantity] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [username, setUsername] = useState("");
 
@@ -792,10 +818,11 @@ function ChecklistSection({
   function handleAdd() {
     if (!newLabel.trim()) return;
     startTransition(async () => {
-      const result = await addChecklistItem(eventId, newLabel.trim());
+      const result = await addChecklistItem(eventId, newLabel.trim(), newQuantity);
       if (result.item) {
         setItems((prev) => [...prev, result.item]);
         setNewLabel("");
+        setNewQuantity(1);
       }
     });
   }
@@ -847,7 +874,7 @@ function ChecklistSection({
             >
               <div className="flex items-center gap-3">
                 <span className={`text-lg ${item.claimedBy ? "opacity-50" : ""}`}>
-                  {item.claimedBy ? "✅" : "📋"}
+                  {item.claimedBy ? "\u2705" : "\uD83D\uDCCB"}
                 </span>
                 <div>
                   <span
@@ -858,10 +885,15 @@ function ChecklistSection({
                     }`}
                   >
                     {item.label}
+                    {item.quantity > 1 && (
+                      <span className="ml-1 text-xs text-charcoal-muted">
+                        (x{item.quantity})
+                      </span>
+                    )}
                   </span>
                   {item.claimedBy && (
                     <span className="ml-2 text-xs font-semibold text-mint-500">
-                      — {item.claimedBy}
+                      &mdash; {item.claimedBy}
                     </span>
                   )}
                 </div>
@@ -911,6 +943,15 @@ function ChecklistSection({
           placeholder={t("checklist.placeholder")}
           className={`flex-1 ${inputClass}`}
         />
+        <input
+          type="number"
+          value={newQuantity}
+          onChange={(e) => setNewQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+          min="1"
+          max="99"
+          className={`w-16 text-center ${inputClass}`}
+          title={t("checklist.quantity")}
+        />
         <button
           onClick={handleAdd}
           disabled={isPending || !newLabel.trim()}
@@ -954,9 +995,11 @@ export default function EventDetailPage() {
   const [rsvpStatus, setRsvpStatus] = useState<"coming" | "maybe">("coming");
   const [subscribeName, setSubscribeName] = useState("");
   const [justSubscribed, setJustSubscribed] = useState(false);
+  const [wasWaitlisted, setWasWaitlisted] = useState(false);
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteSeriesConfirm, setShowDeleteSeriesConfirm] = useState(false);
   const [shared, setShared] = useState(false);
 
   const loadEvent = useCallback(() => {
@@ -986,7 +1029,8 @@ export default function EventDetailPage() {
     return (
       event.attendees.coming.some((n) => n.toLowerCase() === saved) ||
       event.attendees.maybe.some((n) => n.toLowerCase() === saved) ||
-      event.attendees.cant.some((n) => n.toLowerCase() === saved)
+      event.attendees.cant.some((n) => n.toLowerCase() === saved) ||
+      event.attendees.waitlist.some((n) => n.toLowerCase() === saved)
     );
   }
 
@@ -1008,6 +1052,7 @@ export default function EventDetailPage() {
         );
         setShowRsvp(false);
         setJustSubscribed(true);
+        setWasWaitlisted(result.wasWaitlisted || false);
         setSubscribeError(null);
       }
     });
@@ -1025,6 +1070,7 @@ export default function EventDetailPage() {
           prev ? { ...prev, attendees: result.attendees } : prev
         );
         setJustSubscribed(false);
+        setWasWaitlisted(false);
         setSubscribeError(null);
       }
     });
@@ -1033,6 +1079,13 @@ export default function EventDetailPage() {
   function handleDelete() {
     startTransition(async () => {
       await deleteEvent(id);
+    });
+  }
+
+  function handleDeleteSeries() {
+    if (!event?.seriesId) return;
+    startTransition(async () => {
+      await deleteEventSeries(event.seriesId!);
     });
   }
 
@@ -1052,6 +1105,14 @@ export default function EventDetailPage() {
     await navigator.clipboard.writeText(url);
     setShared(true);
     setTimeout(() => setShared(false), 2000);
+  }
+
+  function handleShareWhatsApp() {
+    if (!event) return;
+    const url = window.location.href;
+    const text = `${event.title} — ${event.location}`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`;
+    window.open(whatsappUrl, "_blank");
   }
 
   function isOrganizer(): boolean {
@@ -1119,6 +1180,7 @@ export default function EventDetailPage() {
               src={event.image}
               alt={event.title}
               className="h-64 w-full object-cover"
+              loading="lazy"
             />
           )}
 
@@ -1171,7 +1233,7 @@ export default function EventDetailPage() {
 
                 <p className="mb-1 font-semibold text-coral-500">
                   📅 {formatDate(event.date, locale)}
-                  {event.endDate && ` → ${formatTime(event.endDate, locale)}`}
+                  {event.endDate && ` \u2192 ${formatTime(event.endDate, locale)}`}
                 </p>
 
                 {/* Weather Preview for future outdoor events */}
@@ -1211,6 +1273,13 @@ export default function EventDetailPage() {
                     className="rounded-full border-2 border-coral-200 px-5 py-2 text-sm font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
                   >
                     {shared ? t("detail.linkCopied") : t("detail.share")}
+                  </button>
+
+                  <button
+                    onClick={handleShareWhatsApp}
+                    className="rounded-full bg-[#25D366] px-5 py-2 text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95"
+                  >
+                    WhatsApp
                   </button>
 
                   <a
@@ -1267,6 +1336,33 @@ export default function EventDetailPage() {
                             {t("detail.no")}
                           </button>
                         </div>
+                      )}
+                      {event.seriesId && (
+                        !showDeleteSeriesConfirm ? (
+                          <button
+                            onClick={() => setShowDeleteSeriesConfirm(true)}
+                            className="rounded-full border-2 border-pink-200 px-5 py-2 text-sm font-bold text-pink-500 transition-all hover:bg-pink-100 active:scale-95"
+                          >
+                            {t("detail.deleteSeries")}
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-pink-500 font-semibold">{t("detail.deleteSeriesConfirm")}</span>
+                            <button
+                              onClick={handleDeleteSeries}
+                              disabled={isPending}
+                              className="rounded-full bg-pink-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-pink-400 active:scale-95 disabled:opacity-50"
+                            >
+                              {isPending ? "..." : t("detail.yesDeleteSeries")}
+                            </button>
+                            <button
+                              onClick={() => setShowDeleteSeriesConfirm(false)}
+                              className="rounded-full border-2 border-charcoal-faint px-4 py-2 text-sm font-semibold text-charcoal-muted hover:bg-card-hover"
+                            >
+                              {t("detail.no")}
+                            </button>
+                          </div>
+                        )
                       )}
                     </>
                   )}
@@ -1338,6 +1434,25 @@ export default function EventDetailPage() {
                     </div>
                   )}
 
+                  {/* Waitlist */}
+                  {event.attendees.waitlist.length > 0 && (
+                    <div className="mb-2">
+                      <p className="mb-1 text-xs font-bold text-charcoal-muted">
+                        {t("events.waitlistCount", event.attendees.waitlist.length)}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {event.attendees.waitlist.map((a) => (
+                          <span
+                            key={a}
+                            className="inline-block rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-charcoal-muted"
+                          >
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {!isPast && (
                     <div className="mt-3 space-y-3">
                       {/* RSVP buttons - show if user hasn't RSVP'd yet */}
@@ -1359,8 +1474,16 @@ export default function EventDetailPage() {
                       )}
 
                       {isFull && !userAlreadyRsvped && !justSubscribed && (
-                        <div className="rounded-xl bg-pink-100 px-4 py-3 text-center text-sm font-semibold text-pink-500">
-                          {t("events.eventFull")}
+                        <div className="space-y-2">
+                          <div className="rounded-xl bg-pink-100 px-4 py-3 text-center text-sm font-semibold text-pink-500">
+                            {t("events.eventFull")}
+                          </div>
+                          <button
+                            onClick={() => handleRsvp("coming")}
+                            className="w-full rounded-full border-2 border-coral-300 bg-coral-50 px-6 py-3 font-bold text-coral-500 shadow transition-all hover:bg-coral-100 active:scale-95"
+                          >
+                            {t("events.joinWaitlist")}
+                          </button>
                         </div>
                       )}
 
@@ -1418,7 +1541,7 @@ export default function EventDetailPage() {
                         </button>
                       )}
 
-                      {justSubscribed && (
+                      {justSubscribed && !wasWaitlisted && (
                         <div className="space-y-2">
                           <a
                             href={buildGoogleCalendarUrl(event)}
@@ -1434,6 +1557,12 @@ export default function EventDetailPage() {
                           >
                             {t("detail.downloadIcs")}
                           </button>
+                        </div>
+                      )}
+
+                      {justSubscribed && wasWaitlisted && (
+                        <div className="rounded-xl bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-600">
+                          {t("events.onWaitlist")}
                         </div>
                       )}
                     </div>
