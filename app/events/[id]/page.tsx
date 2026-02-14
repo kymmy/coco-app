@@ -949,7 +949,7 @@ function ChecklistSection({
           onChange={(e) => setNewQuantity(Math.max(1, parseInt(e.target.value) || 1))}
           min="1"
           max="99"
-          className={`w-16 text-center ${inputClass}`}
+          className="w-14 shrink-0 rounded-xl border-2 border-coral-200 bg-coral-50 px-2 py-3 text-center text-charcoal focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           title={t("checklist.quantity")}
         />
         <button
