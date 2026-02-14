@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { createGroup, joinGroup, getGroups } from "@/lib/actions";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react";
 import { useT } from "@/lib/i18n";
 
 interface Group {
@@ -34,6 +35,79 @@ function removeGroupFromLocal(id: string) {
 const inputClass =
   "w-full rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-3 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors";
 
+function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
+  const t = useT();
+  const [copied, setCopied] = useState(false);
+  const joinUrl = `${window.location.origin}/groups/join/${group.code}`;
+
+  async function handleCopyLink() {
+    await navigator.clipboard.writeText(joinUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-charcoal/40 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-sm rounded-3xl bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-charcoal-faint hover:text-charcoal transition-colors"
+          aria-label="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h3 className="mb-1 text-lg font-extrabold text-charcoal">
+          {t("groups.share")}
+        </h3>
+        <p className="mb-5 text-sm text-charcoal-muted">{group.name}</p>
+
+        {/* QR Code */}
+        <div className="mb-5 flex flex-col items-center">
+          <div className="rounded-2xl border-2 border-coral-100 bg-white p-4">
+            <QRCodeSVG
+              value={joinUrl}
+              size={180}
+              level="M"
+              fgColor="#2D2D2D"
+              bgColor="#ffffff"
+            />
+          </div>
+          <p className="mt-2 text-xs text-charcoal-faint">{t("groups.scanToJoin")}</p>
+        </div>
+
+        {/* Link */}
+        <div className="mb-4">
+          <label className="mb-1 block text-xs font-bold text-charcoal-muted">
+            {t("groups.shareLink")}
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={joinUrl}
+              className="flex-1 rounded-xl border-2 border-coral-200 bg-coral-50 px-3 py-2 text-sm text-charcoal select-all"
+              onFocus={(e) => e.target.select()}
+            />
+            <button
+              onClick={handleCopyLink}
+              className="shrink-0 rounded-xl bg-coral-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-coral-400 active:scale-95"
+            >
+              {copied ? t("groups.linkCopied") : t("groups.copy")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GroupsPage() {
   const t = useT();
   const [groups, setGroups] = useState<Group[]>([]);
@@ -44,6 +118,7 @@ export default function GroupsPage() {
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [shareGroup, setShareGroup] = useState<Group | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -241,7 +316,7 @@ export default function GroupsPage() {
                   </button>
                 </div>
 
-                <div className="mb-4 flex items-center gap-2">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
                   <span className="text-sm text-charcoal-muted">
                     {t("groups.inviteCode")}
                   </span>
@@ -256,17 +331,30 @@ export default function GroupsPage() {
                   </button>
                 </div>
 
-                <Link
-                  href="/events"
-                  className="inline-flex items-center text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
-                >
-                  {t("groups.viewGroupEvents")} &rarr;
-                </Link>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/events"
+                    className="text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
+                  >
+                    {t("groups.viewGroupEvents")} &rarr;
+                  </Link>
+                  <button
+                    onClick={() => setShareGroup(group)}
+                    className="rounded-full border border-coral-200 px-3 py-1 text-xs font-semibold text-coral-500 hover:bg-coral-50 transition-colors"
+                  >
+                    {t("groups.share")}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Share modal */}
+      {shareGroup && (
+        <ShareModal group={shareGroup} onClose={() => setShareGroup(null)} />
+      )}
     </main>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import { getEvents, rsvpToEvent, unrsvpFromEvent } from "@/lib/actions";
 import Link from "next/link";
 import { useT, useI18n } from "@/lib/i18n";
@@ -47,6 +47,20 @@ function formatTime(date: Date, locale: string): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(date));
+}
+
+function getRelativeLabel(date: Date, t: (key: string, ...args: (string | number)[]) => string): string | null {
+  const now = new Date();
+  const eventDate = new Date(date);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const eventDayStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+  const diffDays = Math.round((eventDayStart.getTime() - todayStart.getTime()) / (86400000));
+
+  if (diffDays < 0) return null;
+  if (diffDays === 0) return t("events.today");
+  if (diffDays === 1) return t("events.tomorrow");
+  if (diffDays <= 7) return t("events.inDays", diffDays);
+  return null;
 }
 
 function buildGoogleCalendarUrl(event: CocoEvent): string {
@@ -312,6 +326,14 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         <p className="mb-1 text-sm font-semibold text-coral-500">
           📅 {formatDate(event.date, locale)}
           {event.endDate && ` → ${formatTime(event.endDate, locale)}`}
+          {(() => {
+            const label = getRelativeLabel(event.date, t);
+            return label ? (
+              <span className="ml-2 inline-block rounded-full bg-coral-500 px-2 py-0.5 text-xs font-bold text-white">
+                {label}
+              </span>
+            ) : null;
+          })()}
         </p>
 
         <p className="mb-3 text-sm text-charcoal-muted">
@@ -717,6 +739,15 @@ export default function EventsPage() {
   });
   const [hasGroups, setHasGroups] = useState(true);
   const [visibleCount, setVisibleCount] = useState(EVENTS_PER_PAGE);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setShowScrollTop(window.scrollY > 600);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   function changeView(v: "list" | "map" | "calendar") {
     setView(v);
@@ -966,6 +997,20 @@ export default function EventsPage() {
           </>
         )}
       </div>
+
+      {/* Scroll to top button */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-coral-500 text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-300 focus-visible:ring-offset-2 active:scale-95"
+          aria-label={t("events.scrollTop")}
+          title={t("events.scrollTop")}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M18 15l-6-6-6 6" />
+          </svg>
+        </button>
+      )}
     </main>
   );
 }

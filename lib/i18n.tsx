@@ -107,6 +107,27 @@ const fr: Record<string, string> = {
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
 
+  // 404
+  "notFound.title": "Page introuvable",
+  "notFound.description": "Cette page n\u2019existe pas ou a \u00e9t\u00e9 d\u00e9plac\u00e9e.",
+  "notFound.back": "Retour \u00e0 l\u2019accueil",
+
+  // Relative dates
+  "events.today": "Aujourd\u2019hui",
+  "events.tomorrow": "Demain",
+  "events.inDays": "Dans {0} jours",
+
+  // PWA install
+  "pwa.install": "Ajouter Coco \u00e0 l\u2019\u00e9cran d\u2019accueil",
+  "pwa.installButton": "Installer",
+  "pwa.dismiss": "Plus tard",
+
+  // Scroll to top
+  "events.scrollTop": "Remonter",
+
+  // Skip to content
+  "a11y.skipToContent": "Aller au contenu",
+
   // Notification banner
   "notif.enabled": "Notifications activ\u00e9es !",
   "notif.question": "Recevoir les notifications ?",
@@ -291,6 +312,17 @@ const fr: Record<string, string> = {
   "groups.copy": "Copier",
   "groups.viewGroupEvents": "Voir les sorties du groupe",
   "groups.loading": "Chargement...",
+  "groups.share": "Partager",
+  "groups.shareLink": "Lien d\u2019invitation",
+  "groups.scanToJoin": "Scannez pour rejoindre",
+  "groups.linkCopied": "Lien copi\u00e9 !",
+  "groups.joinTitle": "Rejoindre le groupe",
+  "groups.joinDesc": "Vous \u00eates invit\u00e9 \u00e0 rejoindre le groupe",
+  "groups.joinButton": "Rejoindre ce groupe",
+  "groups.alreadyMember": "Vous \u00eates d\u00e9j\u00e0 membre de ce groupe.",
+  "groups.joinSuccess": "Bienvenue ! Vous avez rejoint le groupe.",
+  "groups.groupNotFound": "Ce groupe n\u2019existe pas ou le lien est invalide.",
+  "groups.goToEvents": "Voir les sorties",
 
   // Settings page
   "settings.title": "R\u00e9glages",
@@ -458,6 +490,27 @@ const en: Record<string, string> = {
 
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Made with love by parents, for parents.",
+
+  // 404
+  "notFound.title": "Page not found",
+  "notFound.description": "This page doesn\u2019t exist or has been moved.",
+  "notFound.back": "Back to home",
+
+  // Relative dates
+  "events.today": "Today",
+  "events.tomorrow": "Tomorrow",
+  "events.inDays": "In {0} days",
+
+  // PWA install
+  "pwa.install": "Add Coco to home screen",
+  "pwa.installButton": "Install",
+  "pwa.dismiss": "Later",
+
+  // Scroll to top
+  "events.scrollTop": "Back to top",
+
+  // Skip to content
+  "a11y.skipToContent": "Skip to content",
 
   // Notification banner
   "notif.enabled": "Notifications enabled!",
@@ -643,6 +696,17 @@ const en: Record<string, string> = {
   "groups.copy": "Copy",
   "groups.viewGroupEvents": "View group events",
   "groups.loading": "Loading...",
+  "groups.share": "Share",
+  "groups.shareLink": "Invite link",
+  "groups.scanToJoin": "Scan to join",
+  "groups.linkCopied": "Link copied!",
+  "groups.joinTitle": "Join group",
+  "groups.joinDesc": "You\u2019ve been invited to join the group",
+  "groups.joinButton": "Join this group",
+  "groups.alreadyMember": "You\u2019re already a member of this group.",
+  "groups.joinSuccess": "Welcome! You\u2019ve joined the group.",
+  "groups.groupNotFound": "This group doesn\u2019t exist or the link is invalid.",
+  "groups.goToEvents": "View events",
 
   // Settings page
   "settings.title": "Settings",
