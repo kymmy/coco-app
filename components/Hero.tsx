@@ -23,13 +23,13 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <a
-            href="#final-cta"
+          <Link
+            href="/groups"
             className="inline-flex items-center rounded-full bg-coral-500 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl active:scale-95"
           >
             {t("hero.ctaJoin")}
-            <span className="ml-2 text-xl">👇</span>
-          </a>
+            <span className="ml-2 text-xl">👋</span>
+          </Link>
           <Link
             href="/create"
             className="inline-flex items-center rounded-full border-2 border-coral-500 px-8 py-4 text-lg font-bold text-coral-500 transition-all hover:bg-coral-50 hover:shadow-md active:scale-95"

@@ -1123,9 +1123,40 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12">
-        <div className="mx-auto max-w-2xl py-20 text-center text-charcoal-muted">
-          {t("events.loading")}
+      <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl">
+          <div className="mb-6 h-4 w-32 rounded bg-coral-100" />
+          <div className="animate-pulse overflow-hidden rounded-3xl bg-card shadow-lg">
+            <div className="h-64 w-full bg-coral-100" />
+            <div className="p-6 sm:p-8">
+              <div className="mb-3 flex gap-2">
+                <div className="h-6 w-16 rounded-full bg-coral-100" />
+                <div className="h-6 w-24 rounded-full bg-lavender-100" />
+                <div className="h-6 w-14 rounded-full bg-mint-100" />
+              </div>
+              <div className="mb-2 h-8 w-3/4 rounded-lg bg-coral-100" />
+              <div className="mb-1 h-5 w-1/2 rounded bg-coral-50" />
+              <div className="mb-1 h-5 w-2/3 rounded bg-coral-50" />
+              <div className="mb-4 h-5 w-1/3 rounded bg-coral-50" />
+              <div className="mb-6 space-y-2">
+                <div className="h-4 w-full rounded bg-coral-50" />
+                <div className="h-4 w-full rounded bg-coral-50" />
+                <div className="h-4 w-2/3 rounded bg-coral-50" />
+              </div>
+              <div className="mb-6 flex flex-wrap gap-2">
+                <div className="h-10 w-28 rounded-full bg-coral-100" />
+                <div className="h-10 w-28 rounded-full bg-sky-100" />
+                <div className="h-10 w-28 rounded-full bg-lavender-100" />
+              </div>
+              <div className="rounded-2xl bg-coral-50 p-4">
+                <div className="mb-2 h-4 w-1/3 rounded bg-coral-100" />
+                <div className="flex gap-1.5">
+                  <div className="h-7 w-16 rounded-full bg-mint-100" />
+                  <div className="h-7 w-20 rounded-full bg-mint-100" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     );

@@ -644,6 +644,15 @@ function CalendarView({ events }: { events: CocoEvent[] }) {
         })}
       </div>
 
+      {/* Empty month indication */}
+      {Object.keys(eventsByDay).length === 0 && selectedDay === null && (
+        <div className="mt-4 border-t border-coral-100 pt-4 text-center">
+          <p className="text-sm text-charcoal-muted">
+            {t("events.noEventsThisMonth")}
+          </p>
+        </div>
+      )}
+
       {/* Selected day events */}
       {selectedDay !== null && (
         <div className="mt-4 border-t border-coral-100 pt-4">
@@ -685,9 +694,20 @@ export default function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showPast, setShowPast] = useState(false);
-  const [view, setView] = useState<"list" | "map" | "calendar">("list");
+  const [view, setView] = useState<"list" | "map" | "calendar">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("coco_view_pref");
+      if (saved === "list" || saved === "map" || saved === "calendar") return saved;
+    }
+    return "list";
+  });
   const [hasGroups, setHasGroups] = useState(true);
   const [visibleCount, setVisibleCount] = useState(EVENTS_PER_PAGE);
+
+  function changeView(v: "list" | "map" | "calendar") {
+    setView(v);
+    localStorage.setItem("coco_view_pref", v);
+  }
 
   const CATEGORY_LABELS: Record<string, string> = {
     parc: t("cat.parc"),
@@ -792,20 +812,20 @@ export default function EventsPage() {
 
           <div className="flex rounded-full border-2 border-coral-200 bg-card overflow-hidden">
             <button
-              onClick={() => setView("list")}
+              onClick={() => changeView("list")}
               className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "list" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
             >
               {t("events.list")}
             </button>
             <button
-              onClick={() => setView("calendar")}
+              onClick={() => changeView("calendar")}
               className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "calendar" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
             >
               {t("events.calendar")}
             </button>
             {hasGeoEvents && (
               <button
-                onClick={() => setView("map")}
+                onClick={() => changeView("map")}
                 className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "map" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
               >
                 {t("events.map")}
@@ -815,8 +835,25 @@ export default function EventsPage() {
         </div>
 
         {loading ? (
-          <div className="py-20 text-center text-charcoal-muted">
-            {t("events.loading")}
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse rounded-3xl bg-card shadow-md p-6">
+                <div className="mb-3 flex gap-2">
+                  <div className="h-6 w-16 rounded-full bg-coral-100" />
+                  <div className="h-6 w-24 rounded-full bg-lavender-100" />
+                  <div className="h-6 w-14 rounded-full bg-mint-100" />
+                </div>
+                <div className="mb-2 h-6 w-3/4 rounded-lg bg-coral-100" />
+                <div className="mb-1 h-4 w-1/2 rounded bg-coral-50" />
+                <div className="mb-1 h-4 w-2/3 rounded bg-coral-50" />
+                <div className="mb-3 h-4 w-1/3 rounded bg-coral-50" />
+                <div className="mb-4 h-16 w-full rounded-lg bg-coral-50" />
+                <div className="flex gap-2">
+                  <div className="h-10 flex-1 rounded-full bg-coral-100" />
+                  <div className="h-10 flex-1 rounded-full bg-amber-100" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : !hasGroups && allEvents.length === 0 ? (
           <div className="rounded-3xl bg-card p-12 text-center shadow-md">

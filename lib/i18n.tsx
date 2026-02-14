@@ -33,22 +33,22 @@ const fr: Record<string, string> = {
   "nav.create": "+ Creer",
 
   // Hero
-  "hero.badge": "Pour les parents d\u2019\u00e9l\u00e8ves \ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66",
-  "hero.title": "Organisez les sorties entre parents de l\u2019\u00e9cole ",
+  "hero.badge": "Copains du coin \ud83e\udd65",
+  "hero.title": "Organisez les sorties entre copains du quartier ",
   "hero.titleAccent": "en 1 minute.",
   "hero.subtitle": "Fini les 42 messages WhatsApp pour trouver une date. Proposez, rassemblez, profitez. \ud83c\udf89",
-  "hero.ctaJoin": "Rejoindre les parents de l\u2019\u00e9cole",
+  "hero.ctaJoin": "D\u00e9couvrir les groupes",
   "hero.ctaCreate": "Cr\u00e9er une sortie",
 
   // Why section
   "why.title": "Organiser une sortie, c\u2019est pas cens\u00e9 \u00eatre compliqu\u00e9 \ud83e\udd2f",
-  "why.subtitle": "Pourtant, entre les parents, \u00e7a l\u2019est toujours.",
+  "why.subtitle": "Pourtant, entre amis, \u00e7a l\u2019est toujours.",
   "why.pain1Title": "Trop de messages",
   "why.pain1Desc": "Les groupes WhatsApp qui d\u00e9bordent pour caler un simple go\u00fbter au parc.",
   "why.pain2Title": "Impossible de trouver une date",
   "why.pain2Desc": "Entre le judo, la danse et les week-ends chez mamie, trouver un cr\u00e9neau est un casse-t\u00eate.",
-  "why.pain3Title": "On conna\u00eet peu de parents",
-  "why.pain3Desc": "Difficile d\u2019organiser quand on ne conna\u00eet pas les autres familles de la classe.",
+  "why.pain3Title": "On conna\u00eet peu de monde",
+  "why.pain3Desc": "Difficile d\u2019organiser quand on ne conna\u00eet pas encore les voisins.",
   "why.pain4Title": "Toujours les m\u00eames qui organisent",
   "why.pain4Desc": "La charge mentale retombe toujours sur 2-3 parents motiv\u00e9s. Ce n\u2019est pas tenable.",
   "why.cocoIs": "Coco, c\u2019est {0}, {1}, {2} et {3}. Juste ce qu\u2019il faut pour se retrouver.",
@@ -61,17 +61,17 @@ const fr: Record<string, string> = {
   "how.title": "Comment \u00e7a marche\u00a0? \ud83e\udde9",
   "how.subtitle": "3 \u00e9tapes, z\u00e9ro prise de t\u00eate.",
   "how.step1Title": "Cr\u00e9ez ou rejoignez un groupe",
-  "how.step1Desc": "Cr\u00e9ez un groupe pour votre \u00e9cole ou classe et partagez le code d\u2019invitation avec les autres parents.",
+  "how.step1Desc": "Cr\u00e9ez un groupe pour votre quartier, votre \u00e9cole ou vos amis et partagez le code d\u2019invitation.",
   "how.step2Title": "Proposez une sortie",
-  "how.step2Desc": "Parc, go\u00fbter, mus\u00e9e, piscine\u2026 Cr\u00e9ez une sortie en quelques secondes et les parents du groupe sont pr\u00e9venus.",
+  "how.step2Desc": "Parc, go\u00fbter, mus\u00e9e, piscine\u2026 Cr\u00e9ez une sortie en quelques secondes et les membres du groupe sont pr\u00e9venus.",
   "how.step3Title": "Organisez-vous ensemble",
   "how.step3Desc": "Inscrivez-vous, pr\u00e9cisez qui apporte quoi, recevez un rappel la veille. Vous n\u2019avez plus qu\u2019\u00e0 en profiter !",
 
   // Community
   "community.title": "Une communaut\u00e9 de confiance \ud83e\udd1d",
-  "community.subtitle": "Coco cr\u00e9e un espace s\u00fbr et chaleureux pour les parents de votre \u00e9cole.",
+  "community.subtitle": "Coco cr\u00e9e un espace s\u00fbr et chaleureux pour votre communaut\u00e9 de proximit\u00e9.",
   "community.bullet1Title": "Priv\u00e9 par d\u00e9faut",
-  "community.bullet1Desc": "Seuls les parents de l\u2019\u00e9cole peuvent voir et rejoindre les sorties.",
+  "community.bullet1Desc": "Seuls les membres du groupe peuvent voir et rejoindre les sorties.",
   "community.bullet2Title": "100% local",
   "community.bullet2Desc": "Votre \u00e9cole, votre quartier, vos voisins. Pas un r\u00e9seau social de plus.",
   "community.bullet3Title": "Aucune pub, aucun tracking",
@@ -87,8 +87,8 @@ const fr: Record<string, string> = {
   "social.stat1Label": "familles int\u00e9ress\u00e9es",
   "social.stat1Desc": "Des parents comme vous, pr\u00eats \u00e0 simplifier les sorties.",
   "social.stat2Value": "12",
-  "social.stat2Label": "\u00e9coles en attente",
-  "social.stat2Desc": "De la maternelle au CM2, partout en France.",
+  "social.stat2Label": "quartiers en attente",
+  "social.stat2Desc": "Partout en France, des voisins pr\u00eats \u00e0 se retrouver.",
   "social.stat3Value": "100%",
   "social.stat3Label": "gratuit au lancement",
   "social.stat3Desc": "Les premiers inscrits profiteront de Coco gratuitement.",
@@ -274,7 +274,7 @@ const fr: Record<string, string> = {
 
   // Groups page
   "groups.title": "Mes groupes",
-  "groups.subtitle": "Cr\u00e9ez un groupe pour votre \u00e9cole ou classe, puis partagez le code avec les autres parents.",
+  "groups.subtitle": "Cr\u00e9ez un groupe pour votre quartier, \u00e9cole ou bande de copains, puis partagez le code.",
   "groups.createGroup": "Cr\u00e9er un groupe",
   "groups.join": "Rejoindre",
   "groups.newGroup": "Nouveau groupe",
@@ -348,6 +348,7 @@ const fr: Record<string, string> = {
   // Calendar view
   "events.calendar": "Calendrier",
   "events.noEventsThisDay": "Aucune sortie ce jour",
+  "events.noEventsThisMonth": "Aucune sortie ce mois-ci",
 
   // Comment deletion
   "comments.delete": "Supprimer",
@@ -384,22 +385,22 @@ const en: Record<string, string> = {
   "nav.create": "+ Create",
 
   // Hero
-  "hero.badge": "For school parents \ud83d\udc68\u200d\ud83d\udc69\u200d\ud83d\udc67\u200d\ud83d\udc66",
-  "hero.title": "Organize outings between school parents ",
+  "hero.badge": "Neighborhood buddies \ud83e\udd65",
+  "hero.title": "Organize outings with your neighborhood crew ",
   "hero.titleAccent": "in 1 minute.",
   "hero.subtitle": "No more 42 WhatsApp messages to find a date. Propose, gather, enjoy. \ud83c\udf89",
-  "hero.ctaJoin": "Join school parents",
+  "hero.ctaJoin": "Discover groups",
   "hero.ctaCreate": "Create an outing",
 
   // Why section
   "why.title": "Organizing an outing shouldn\u2019t be this hard \ud83e\udd2f",
-  "why.subtitle": "Yet, between parents, it always is.",
+  "why.subtitle": "Yet, among friends, it always is.",
   "why.pain1Title": "Too many messages",
   "why.pain1Desc": "WhatsApp groups overflowing just to plan a simple picnic at the park.",
   "why.pain2Title": "Impossible to find a date",
   "why.pain2Desc": "Between judo, dance, and weekends at grandma\u2019s, finding a slot is a puzzle.",
-  "why.pain3Title": "We barely know other parents",
-  "why.pain3Desc": "Hard to organize when you don\u2019t know the other families in the class.",
+  "why.pain3Title": "We barely know anyone nearby",
+  "why.pain3Desc": "Hard to organize when you don\u2019t know your neighbors yet.",
   "why.pain4Title": "Always the same ones organizing",
   "why.pain4Desc": "The mental load always falls on 2\u20133 motivated parents. It\u2019s not sustainable.",
   "why.cocoIs": "Coco is {0}, {1}, {2} and {3}. Just what you need to get together.",
@@ -412,17 +413,17 @@ const en: Record<string, string> = {
   "how.title": "How it works \ud83e\udde9",
   "how.subtitle": "3 steps, zero hassle.",
   "how.step1Title": "Create or join a group",
-  "how.step1Desc": "Create a group for your school or class and share the invite code with other parents.",
+  "how.step1Desc": "Create a group for your neighborhood, school, or friends and share the invite code.",
   "how.step2Title": "Propose an outing",
-  "how.step2Desc": "Park, snack, museum, pool\u2026 Create an outing in seconds and group parents are notified.",
+  "how.step2Desc": "Park, snack, museum, pool\u2026 Create an outing in seconds and group members are notified.",
   "how.step3Title": "Organize together",
   "how.step3Desc": "Sign up, specify who brings what, get a reminder the day before. All you have to do is enjoy!",
 
   // Community
   "community.title": "A trusted community \ud83e\udd1d",
-  "community.subtitle": "Coco creates a safe and warm space for your school\u2019s parents.",
+  "community.subtitle": "Coco creates a safe and warm space for your local community.",
   "community.bullet1Title": "Private by default",
-  "community.bullet1Desc": "Only school parents can see and join outings.",
+  "community.bullet1Desc": "Only group members can see and join outings.",
   "community.bullet2Title": "100% local",
   "community.bullet2Desc": "Your school, your neighborhood, your neighbors. Not another social network.",
   "community.bullet3Title": "No ads, no tracking",
@@ -438,8 +439,8 @@ const en: Record<string, string> = {
   "social.stat1Label": "interested families",
   "social.stat1Desc": "Parents like you, ready to simplify outings.",
   "social.stat2Value": "12",
-  "social.stat2Label": "schools waiting",
-  "social.stat2Desc": "From kindergarten to 5th grade, all over France.",
+  "social.stat2Label": "neighborhoods waiting",
+  "social.stat2Desc": "All over France, neighbors ready to get together.",
   "social.stat3Value": "100%",
   "social.stat3Label": "free at launch",
   "social.stat3Desc": "Early adopters will enjoy Coco for free.",
@@ -625,7 +626,7 @@ const en: Record<string, string> = {
 
   // Groups page
   "groups.title": "My groups",
-  "groups.subtitle": "Create a group for your school or class, then share the code with other parents.",
+  "groups.subtitle": "Create a group for your neighborhood, school, or friend circle, then share the code.",
   "groups.createGroup": "Create a group",
   "groups.join": "Join",
   "groups.newGroup": "New group",
@@ -699,6 +700,7 @@ const en: Record<string, string> = {
   // Calendar view
   "events.calendar": "Calendar",
   "events.noEventsThisDay": "No events this day",
+  "events.noEventsThisMonth": "No events this month",
 
   // Comment deletion
   "comments.delete": "Delete",
