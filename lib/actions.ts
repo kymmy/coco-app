@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { sendPushToGroup, sendPushToUser } from "@/lib/push";
 
 // ==================== HELPERS ====================
@@ -9,6 +10,38 @@ import { sendPushToGroup, sendPushToUser } from "@/lib/push";
 /** Strip HTML tags from user input to prevent XSS */
 function sanitize(input: string): string {
   return input.replace(/<[^>]*>/g, "").trim();
+}
+
+// ==================== RATE LIMITING ====================
+
+const MAX_EVENTS_PER_HOUR = 5;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MIN_SUBMIT_TIME_MS = 3_000; // 3 seconds minimum between form load and submit
+
+/** In-memory store: IP → list of creation timestamps */
+const rateLimitMap = new Map<string, number[]>();
+
+function getClientIp(hdrs: Headers): string {
+  return (
+    hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    hdrs.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(ip) || [];
+  // Keep only timestamps within the window
+  const recent = timestamps.filter((t) => now - t < RATE_WINDOW_MS);
+  rateLimitMap.set(ip, recent);
+  return recent.length >= MAX_EVENTS_PER_HOUR;
+}
+
+function recordCreation(ip: string) {
+  const timestamps = rateLimitMap.get(ip) || [];
+  timestamps.push(Date.now());
+  rateLimitMap.set(ip, timestamps);
 }
 
 // ==================== GROUPS ====================
@@ -63,6 +96,29 @@ export async function getGroups(ids: string[]) {
 // ==================== EVENTS ====================
 
 export async function createEvent(formData: FormData) {
+  // Anti-spam: honeypot field — bots fill this, humans don't see it
+  const honeypot = formData.get("website") as string | null;
+  if (honeypot) {
+    // Silently pretend success so bots don't adapt
+    redirect("/events");
+  }
+
+  // Anti-spam: timestamp check — reject if submitted too fast
+  const loadedAt = formData.get("_t") as string | null;
+  if (loadedAt) {
+    const elapsed = Date.now() - parseInt(loadedAt, 10);
+    if (elapsed < MIN_SUBMIT_TIME_MS) {
+      return { error: "Veuillez patienter quelques secondes avant de soumettre." };
+    }
+  }
+
+  // Anti-spam: IP-based rate limiting
+  const hdrs = await headers();
+  const ip = getClientIp(hdrs);
+  if (isRateLimited(ip)) {
+    return { error: "Trop de sorties créées récemment. Réessayez dans quelques minutes." };
+  }
+
   const title = formData.get("title") as string;
   const date = formData.get("date") as string;
   const endDate = formData.get("endDate") as string | null;
@@ -137,6 +193,9 @@ export async function createEvent(formData: FormData) {
       },
     });
   }
+
+  // Record successful creation for rate limiting
+  recordCreation(ip);
 
   // Push notification to group members
   if (groupId) {

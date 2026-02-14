@@ -325,6 +325,14 @@ function CreateEventForm() {
           )}
 
           <form action={handleSubmit} className="space-y-6" key={duplicateId || "new"} onChange={() => !isDirty && setIsDirty(true)}>
+            {/* Anti-spam: honeypot (invisible to users, bots fill it) */}
+            <div aria-hidden="true" className="absolute left-[-9999px] opacity-0 h-0 overflow-hidden">
+              <label htmlFor="website">Website</label>
+              <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+            </div>
+            {/* Anti-spam: form load timestamp */}
+            <input type="hidden" name="_t" value={String(Date.now())} />
+
             {/* Title */}
             <div>
               <label htmlFor="title" className="mb-1 block text-sm font-bold text-charcoal">
