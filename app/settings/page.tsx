@@ -227,7 +227,7 @@ export default function SettingsPage() {
                 <p className="text-sm text-charcoal-muted">
                   {t("settings.notifBlockedDesc")}
                 </p>
-              ) : (
+              ) : notifPermission !== "granted" && (
                 <button
                   onClick={handleEnableNotifications}
                   disabled={notifBusy}
@@ -237,9 +237,7 @@ export default function SettingsPage() {
                     ? t("settings.enabling")
                     : notifSuccess
                       ? t("settings.notifEnabledMsg")
-                      : notifPermission === "granted"
-                        ? t("settings.resync")
-                        : t("settings.enableNotif")}
+                      : t("settings.enableNotif")}
                 </button>
               )}
             </>

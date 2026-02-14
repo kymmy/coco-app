@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   getEvent,
+  getGroups,
   updateEvent,
   deleteEvent,
   deleteEventSeries,
@@ -109,6 +110,8 @@ function toLocalDatetime(date: Date): string {
   const local = new Date(d.getTime() - offset * 60000);
   return local.toISOString().slice(0, 16);
 }
+
+
 
 function buildGoogleCalendarUrl(event: CocoEvent): string {
   const start = new Date(event.date);
@@ -508,19 +511,30 @@ function EditForm({
       ? { lat: event.latitude, lng: event.longitude }
       : null
   );
+  const [selectedGroupId, setSelectedGroupId] = useState(event.groupId || "");
+  const [myGroups, setMyGroups] = useState<{ id: string; name: string }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { suggestions, loading } = useAddressSearch(location);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    if (groupIds.length > 0) {
+      getGroups(groupIds).then(setMyGroups);
+    }
+  }, []);
+
   const CATEGORIES = [
-    { value: "parc", label: t("cat.parc") },
-    { value: "sport", label: t("cat.sport") },
-    { value: "musee", label: t("cat.musee") },
-    { value: "spectacle", label: t("cat.spectacle") },
-    { value: "restaurant", label: t("cat.restaurant") },
     { value: "atelier", label: t("cat.atelier") },
-    { value: "piscine", label: t("cat.piscine") },
     { value: "balade", label: t("cat.balade") },
+    { value: "brunch", label: t("cat.brunch") },
+    { value: "gouter", label: t("cat.gouter") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "parc", label: t("cat.parc") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "sport", label: t("cat.sport") },
     { value: "autre", label: t("cat.autre") },
   ];
 
@@ -578,14 +592,32 @@ function EditForm({
         <input type="text" id="edit-organizer" name="organizer" required defaultValue={event.organizer} className={inputClass} />
       </div>
 
+      {myGroups.length > 0 && (
+        <div>
+          <label htmlFor="edit-groupId" className="mb-1 block text-sm font-bold text-charcoal">{t("create.group")}</label>
+          <select
+            id="edit-groupId"
+            name="groupId"
+            value={selectedGroupId}
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className={`${inputClass} cursor-pointer`}
+          >
+            <option value="">{t("create.noGroup")}</option>
+            {myGroups.map((g) => (
+              <option key={g.id} value={g.id}>{g.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="edit-date" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.start")}</label>
-          <input type="datetime-local" id="edit-date" name="date" required defaultValue={toLocalDatetime(event.date)} className={inputClass} />
+          <input type="datetime-local" id="edit-date" name="date" required defaultValue={toLocalDatetime(event.date)} className={`${inputClass} datetime-input`} />
         </div>
         <div>
           <label htmlFor="edit-endDate" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.end")}</label>
-          <input type="datetime-local" id="edit-endDate" name="endDate" defaultValue={event.endDate ? toLocalDatetime(event.endDate) : ""} className={inputClass} />
+          <input type="datetime-local" id="edit-endDate" name="endDate" defaultValue={event.endDate ? toLocalDatetime(event.endDate) : ""} className={`${inputClass} datetime-input`} />
         </div>
       </div>
 
@@ -974,14 +1006,16 @@ export default function EventDetailPage() {
   const id = params.id as string;
 
   const CATEGORIES = [
-    { value: "parc", label: t("cat.parc") },
-    { value: "sport", label: t("cat.sport") },
-    { value: "musee", label: t("cat.musee") },
-    { value: "spectacle", label: t("cat.spectacle") },
-    { value: "restaurant", label: t("cat.restaurant") },
     { value: "atelier", label: t("cat.atelier") },
-    { value: "piscine", label: t("cat.piscine") },
     { value: "balade", label: t("cat.balade") },
+    { value: "brunch", label: t("cat.brunch") },
+    { value: "gouter", label: t("cat.gouter") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "parc", label: t("cat.parc") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "sport", label: t("cat.sport") },
     { value: "autre", label: t("cat.autre") },
   ];
   const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(

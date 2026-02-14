@@ -118,14 +118,16 @@ function CreateEventForm() {
   const duplicateId = searchParams.get("duplicate");
 
   const CATEGORIES = [
-    { value: "parc", label: t("cat.parc") },
-    { value: "sport", label: t("cat.sport") },
-    { value: "musee", label: t("cat.musee") },
-    { value: "spectacle", label: t("cat.spectacle") },
-    { value: "restaurant", label: t("cat.restaurant") },
     { value: "atelier", label: t("cat.atelier") },
-    { value: "piscine", label: t("cat.piscine") },
     { value: "balade", label: t("cat.balade") },
+    { value: "brunch", label: t("cat.brunch") },
+    { value: "gouter", label: t("cat.gouter") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "parc", label: t("cat.parc") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "sport", label: t("cat.sport") },
     { value: "autre", label: t("cat.autre") },
   ];
 
@@ -139,6 +141,8 @@ function CreateEventForm() {
   const [organizer, setOrganizer] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [recurrence, setRecurrence] = useState("none");
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState("");
@@ -201,7 +205,7 @@ function CreateEventForm() {
       setDefaults({
         title: event.title,
         category: event.category,
-        date: "", // Leave date blank so user picks a new date
+        date: "",
         endDate: "",
         price: event.price,
         maxParticipants: event.maxParticipants != null ? String(event.maxParticipants) : "",
@@ -419,8 +423,12 @@ function CreateEventForm() {
                   id="date"
                   name="date"
                   required
-                  defaultValue={defaults.date}
-                  className={inputClass}
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    if (!endDate) setEndDate(e.target.value);
+                  }}
+                  className={`${inputClass} datetime-input`}
                 />
               </div>
               <div>
@@ -431,8 +439,9 @@ function CreateEventForm() {
                   type="datetime-local"
                   id="endDate"
                   name="endDate"
-                  defaultValue={defaults.endDate}
-                  className={inputClass}
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className={`${inputClass} datetime-input`}
                 />
               </div>
             </div>
@@ -453,21 +462,40 @@ function CreateEventForm() {
                 <option value="weekly">{t("create.weekly")}</option>
                 <option value="biweekly">{t("create.biweekly")}</option>
                 <option value="monthly">{t("create.monthly")}</option>
+                <option value="custom">{t("create.custom")}</option>
               </select>
               {recurrence !== "none" && (
-                <div className="mt-2">
-                  <label htmlFor="recurrenceCount" className="mb-1 block text-xs font-bold text-charcoal-muted">
-                    {t("create.occurrences")}
-                  </label>
-                  <input
-                    type="number"
-                    id="recurrenceCount"
-                    name="recurrenceCount"
-                    min="2"
-                    max="52"
-                    defaultValue={defaults.recurrenceCount}
-                    className={inputClass}
-                  />
+                <div className="mt-2 space-y-2">
+                  {recurrence === "custom" && (
+                    <div>
+                      <label htmlFor="customIntervalDays" className="mb-1 block text-xs font-bold text-charcoal-muted">
+                        {t("create.everyXDays")}
+                      </label>
+                      <input
+                        type="number"
+                        id="customIntervalDays"
+                        name="customIntervalDays"
+                        min="1"
+                        max="365"
+                        defaultValue="7"
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label htmlFor="recurrenceCount" className="mb-1 block text-xs font-bold text-charcoal-muted">
+                      {t("create.occurrences")}
+                    </label>
+                    <input
+                      type="number"
+                      id="recurrenceCount"
+                      name="recurrenceCount"
+                      min="2"
+                      max="52"
+                      defaultValue={defaults.recurrenceCount}
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
               )}
             </div>

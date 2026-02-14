@@ -137,6 +137,7 @@ export async function createEvent(formData: FormData) {
   const groupId = formData.get("groupId") as string | null;
   const recurrence = formData.get("recurrence") as string | null;
   const recurrenceCount = formData.get("recurrenceCount") as string | null;
+  const customIntervalDays = formData.get("customIntervalDays") as string | null;
 
   if (!title || !date || !location || !description || !organizer) {
     return { error: "Titre, date, lieu, description et organisateur sont requis." };
@@ -169,7 +170,9 @@ export async function createEvent(formData: FormData) {
       : 0;
 
     const intervalDays =
-      recurrence === "weekly" ? 7 : recurrence === "biweekly" ? 14 : 30;
+      recurrence === "custom" && customIntervalDays
+        ? Math.max(1, Math.min(365, parseInt(customIntervalDays, 10)))
+        : recurrence === "weekly" ? 7 : recurrence === "biweekly" ? 14 : 30;
 
     for (let i = 0; i < count; i++) {
       const eventDate = new Date(
@@ -274,6 +277,7 @@ export async function updateEvent(id: string, formData: FormData) {
   const organizer = formData.get("organizer") as string;
   const ageMin = formData.get("ageMin") as string | null;
   const ageMax = formData.get("ageMax") as string | null;
+  const groupId = formData.get("groupId") as string | null;
 
   if (!title || !date || !location || !description || !organizer) {
     return { error: "Titre, date, lieu, description et organisateur sont requis." };
@@ -300,6 +304,7 @@ export async function updateEvent(id: string, formData: FormData) {
       organizer: sanitize(organizer),
       ageMin: ageMin ? parseInt(ageMin, 10) : null,
       ageMax: ageMax ? parseInt(ageMax, 10) : null,
+      groupId: groupId || null,
     },
   });
 

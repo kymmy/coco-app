@@ -151,14 +151,16 @@ function ShareButton({ event }: { event: CocoEvent }) {
 // ---------- Event Card ----------
 
 const CATEGORY_STRIP: Record<string, string> = {
-  parc: "bg-gradient-to-r from-mint-300 to-mint-500",
-  sport: "bg-gradient-to-r from-sky-300 to-sky-500",
-  musee: "bg-gradient-to-r from-lavender-300 to-lavender-500",
-  spectacle: "bg-gradient-to-r from-pink-300 to-pink-500",
-  restaurant: "bg-gradient-to-r from-coral-300 to-coral-500",
   atelier: "bg-gradient-to-r from-amber-300 to-amber-500",
-  piscine: "bg-gradient-to-r from-sky-400 to-sky-500",
   balade: "bg-gradient-to-r from-mint-400 to-mint-500",
+  brunch: "bg-gradient-to-r from-amber-200 to-amber-400",
+  gouter: "bg-gradient-to-r from-pink-200 to-pink-400",
+  musee: "bg-gradient-to-r from-lavender-300 to-lavender-500",
+  parc: "bg-gradient-to-r from-mint-300 to-mint-500",
+  piscine: "bg-gradient-to-r from-sky-400 to-sky-500",
+  restaurant: "bg-gradient-to-r from-coral-300 to-coral-500",
+  spectacle: "bg-gradient-to-r from-pink-300 to-pink-500",
+  sport: "bg-gradient-to-r from-sky-300 to-sky-500",
   autre: "bg-gradient-to-r from-coral-300 to-coral-400",
 };
 
@@ -177,14 +179,16 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
 
   const CATEGORY_LABELS: Record<string, string> = {
-    parc: t("cat.parc"),
-    sport: t("cat.sport"),
-    musee: t("cat.musee"),
-    spectacle: t("cat.spectacle"),
-    restaurant: t("cat.restaurant"),
     atelier: t("cat.atelier"),
-    piscine: t("cat.piscine"),
     balade: t("cat.balade"),
+    brunch: t("cat.brunch"),
+    gouter: t("cat.gouter"),
+    musee: t("cat.musee"),
+    parc: t("cat.parc"),
+    piscine: t("cat.piscine"),
+    restaurant: t("cat.restaurant"),
+    spectacle: t("cat.spectacle"),
+    sport: t("cat.sport"),
     autre: t("cat.autre"),
   };
 
@@ -755,14 +759,16 @@ export default function EventsPage() {
   }
 
   const CATEGORY_LABELS: Record<string, string> = {
-    parc: t("cat.parc"),
-    sport: t("cat.sport"),
-    musee: t("cat.musee"),
-    spectacle: t("cat.spectacle"),
-    restaurant: t("cat.restaurant"),
     atelier: t("cat.atelier"),
-    piscine: t("cat.piscine"),
     balade: t("cat.balade"),
+    brunch: t("cat.brunch"),
+    gouter: t("cat.gouter"),
+    musee: t("cat.musee"),
+    parc: t("cat.parc"),
+    piscine: t("cat.piscine"),
+    restaurant: t("cat.restaurant"),
+    spectacle: t("cat.spectacle"),
+    sport: t("cat.sport"),
     autre: t("cat.autre"),
   };
   const CATEGORY_OPTIONS = [
