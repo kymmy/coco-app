@@ -39,6 +39,8 @@ interface CocoEvent {
   ageMin: number | null;
   ageMax: number | null;
   seriesId: string | null;
+  groupId: string | null;
+  group: { id: string; name: string; code: string } | null;
   createdAt: Date;
   attendees: string[];
 }
@@ -173,6 +175,11 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           {event.seriesId && (
             <span className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-500">
               🔁 Récurrent
+            </span>
+          )}
+          {event.group && (
+            <span className="inline-block rounded-full bg-coral-50 px-3 py-1 text-xs font-bold text-charcoal-muted">
+              🏫 {event.group.name}
             </span>
           )}
         </div>
@@ -325,9 +332,12 @@ export default function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [showPast, setShowPast] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
+  const [hasGroups, setHasGroups] = useState(true);
 
   useEffect(() => {
-    getEvents().then((data) => {
+    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    setHasGroups(groupIds.length > 0);
+    getEvents(groupIds.length > 0 ? groupIds : undefined).then((data) => {
       setAllEvents(data);
       setLoading(false);
     });
@@ -407,6 +417,22 @@ export default function EventsPage() {
         {loading ? (
           <div className="py-20 text-center text-charcoal-muted">
             Chargement...
+          </div>
+        ) : !hasGroups && allEvents.length === 0 ? (
+          <div className="rounded-3xl bg-white p-12 text-center shadow-md">
+            <p className="mb-2 text-5xl">🏫</p>
+            <p className="text-lg font-bold text-charcoal">
+              Rejoignez un groupe pour voir les sorties
+            </p>
+            <p className="mt-1 text-charcoal-muted">
+              Créez ou rejoignez un groupe de parents pour commencer.
+            </p>
+            <Link
+              href="/groups"
+              className="mt-6 inline-flex rounded-full bg-coral-500 px-8 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95"
+            >
+              Mes groupes 👨‍👩‍👧‍👦
+            </Link>
           </div>
         ) : allEvents.length === 0 ? (
           <div className="rounded-3xl bg-white p-12 text-center shadow-md">

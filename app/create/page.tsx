@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useTransition } from "react";
-import { createEvent } from "@/lib/actions";
+import { createEvent, getGroups } from "@/lib/actions";
 import Link from "next/link";
+
+interface Group {
+  id: string;
+  name: string;
+  code: string;
+}
 
 const CATEGORIES = [
   { value: "parc", label: "🌳 Parc / Plein air" },
@@ -114,11 +120,18 @@ export default function CreateEventPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [recurrence, setRecurrence] = useState("none");
+  const [myGroups, setMyGroups] = useState<Group[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
 
-  // Auto-fill organizer from localStorage
+  // Auto-fill organizer and load groups from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("coco_username");
     if (saved) setOrganizer(saved);
+
+    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    if (groupIds.length > 0) {
+      getGroups(groupIds).then(setMyGroups);
+    }
   }, []);
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -254,6 +267,29 @@ export default function CreateEventPage() {
                 className={inputClass}
               />
             </div>
+
+            {/* Group selector */}
+            {myGroups.length > 0 && (
+              <div>
+                <label htmlFor="groupId" className="mb-1 block text-sm font-bold text-charcoal">
+                  Groupe
+                </label>
+                <select
+                  id="groupId"
+                  name="groupId"
+                  value={selectedGroupId}
+                  onChange={(e) => setSelectedGroupId(e.target.value)}
+                  className={`${inputClass} cursor-pointer`}
+                >
+                  <option value="">Aucun groupe</option>
+                  {myGroups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Date row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

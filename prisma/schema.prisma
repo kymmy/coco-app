@@ -11,8 +11,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Group {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now())
+  events    Event[]
+}
+
 model Event {
-  id              String    @id @default(uuid())
+  id              String          @id @default(uuid())
   title           String
   date            DateTime
   endDate         DateTime?
@@ -22,16 +30,19 @@ model Event {
   eventLink       String
   description     String
   image           String?
-  category        String    @default("autre")
-  price           String    @default("Gratuit")
+  category        String          @default("autre")
+  price           String          @default("Gratuit")
   maxParticipants Int?
   organizer       String
   ageMin          Int?
   ageMax          Int?
   seriesId        String?
-  createdAt       DateTime  @default(now())
-  attendees       String    @default("[]") // JSON array of names
+  groupId         String?
+  group           Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  attendees       String          @default("[]") // JSON array of names
   comments        Comment[]
+  checklist       ChecklistItem[]
 }
 
 model Comment {
@@ -41,4 +52,21 @@ model Comment {
   author    String
   content   String
   createdAt DateTime @default(now())
+}
+
+model ChecklistItem {
+  id        String  @id @default(uuid())
+  eventId   String
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  label     String
+  claimedBy String?
+}
+
+model PushSubscription {
+  id       String @id @default(uuid())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+  username String
+  groupIds String @default("[]") // JSON array of group IDs
 }

@@ -1,0 +1,21 @@
+{
+  "name": "Coco — Copains du coin",
+  "short_name": "Coco",
+  "description": "Organisez les sorties entre parents de l'école",
+  "start_url": "/events",
+  "display": "standalone",
+  "background_color": "#FFF5F0",
+  "theme_color": "#FF6B6B",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

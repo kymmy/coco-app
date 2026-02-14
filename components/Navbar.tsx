@@ -14,20 +14,30 @@ export default function Navbar() {
           Coco <span className="text-coral-500">🥥</span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/groups"
+            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
+              pathname.startsWith("/groups")
+                ? "bg-coral-500 text-white"
+                : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
+            }`}
+          >
+            Groupes
+          </Link>
           <Link
             href="/events"
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
               pathname.startsWith("/events")
                 ? "bg-coral-500 text-white"
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
             }`}
           >
-            Les sorties
+            Sorties
           </Link>
           <Link
             href="/create"
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
               pathname === "/create"
                 ? "bg-coral-500 text-white"
                 : "border-2 border-coral-500 text-coral-500 hover:bg-coral-50"

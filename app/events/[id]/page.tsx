@@ -9,6 +9,9 @@ import {
   deleteEvent,
   subscribeToEvent,
   addComment,
+  addChecklistItem,
+  claimChecklistItem,
+  removeChecklistItem,
 } from "@/lib/actions";
 
 const CATEGORIES = [
@@ -34,6 +37,12 @@ interface Comment {
   createdAt: Date;
 }
 
+interface ChecklistItemType {
+  id: string;
+  label: string;
+  claimedBy: string | null;
+}
+
 interface CocoEvent {
   id: string;
   title: string;
@@ -52,9 +61,12 @@ interface CocoEvent {
   ageMin: number | null;
   ageMax: number | null;
   seriesId: string | null;
+  groupId: string | null;
+  group: { id: string; name: string; code: string } | null;
   createdAt: Date;
   attendees: string[];
   comments: Comment[];
+  checklist: ChecklistItemType[];
 }
 
 function formatDateFR(date: Date): string {
@@ -445,6 +457,161 @@ function CommentSection({
   );
 }
 
+// ---------- Checklist Section ----------
+
+function ChecklistSection({
+  eventId,
+  checklist: initialChecklist,
+  isOrganizer,
+}: {
+  eventId: string;
+  checklist: ChecklistItemType[];
+  isOrganizer: boolean;
+}) {
+  const [items, setItems] = useState(initialChecklist);
+  const [newLabel, setNewLabel] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("coco_username");
+    if (saved) setUsername(saved);
+  }, []);
+
+  function handleAdd() {
+    if (!newLabel.trim()) return;
+    startTransition(async () => {
+      const result = await addChecklistItem(eventId, newLabel.trim());
+      if (result.item) {
+        setItems((prev) => [...prev, result.item]);
+        setNewLabel("");
+      }
+    });
+  }
+
+  function handleClaim(itemId: string) {
+    if (!username) return;
+    startTransition(async () => {
+      const result = await claimChecklistItem(itemId, username);
+      if (result.item) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === itemId ? result.item : i))
+        );
+      }
+    });
+  }
+
+  function handleUnclaim(itemId: string) {
+    startTransition(async () => {
+      const result = await claimChecklistItem(itemId, "");
+      if (result.item) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === itemId ? { ...result.item, claimedBy: null } : i))
+        );
+      }
+    });
+  }
+
+  function handleRemove(itemId: string) {
+    startTransition(async () => {
+      await removeChecklistItem(itemId);
+      setItems((prev) => prev.filter((i) => i.id !== itemId));
+    });
+  }
+
+  return (
+    <div>
+      <h3 className="mb-4 text-lg font-extrabold text-charcoal">
+        Qui apporte quoi ? ({items.filter((i) => i.claimedBy).length}/{items.length})
+      </h3>
+
+      {items.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={`flex items-center justify-between rounded-2xl px-4 py-3 ${
+                item.claimedBy ? "bg-mint-100" : "bg-coral-50"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className={`text-lg ${item.claimedBy ? "opacity-50" : ""}`}>
+                  {item.claimedBy ? "✅" : "📋"}
+                </span>
+                <div>
+                  <span
+                    className={`text-sm font-semibold ${
+                      item.claimedBy
+                        ? "text-charcoal-muted line-through"
+                        : "text-charcoal"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  {item.claimedBy && (
+                    <span className="ml-2 text-xs font-semibold text-mint-500">
+                      — {item.claimedBy}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {!item.claimedBy && username && (
+                  <button
+                    onClick={() => handleClaim(item.id)}
+                    disabled={isPending}
+                    className="rounded-full bg-coral-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
+                  >
+                    Je m&apos;en charge
+                  </button>
+                )}
+                {item.claimedBy === username && (
+                  <button
+                    onClick={() => handleUnclaim(item.id)}
+                    disabled={isPending}
+                    className="rounded-full border border-charcoal-faint px-3 py-1.5 text-xs font-semibold text-charcoal-muted hover:bg-white transition-colors disabled:opacity-50"
+                  >
+                    Annuler
+                  </button>
+                )}
+                {isOrganizer && (
+                  <button
+                    onClick={() => handleRemove(item.id)}
+                    disabled={isPending}
+                    className="text-xs text-charcoal-faint hover:text-pink-500 transition-colors disabled:opacity-50"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add new item */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          placeholder="ex: Gâteau, boissons, ballon..."
+          className={`flex-1 ${inputClass}`}
+        />
+        <button
+          onClick={handleAdd}
+          disabled={isPending || !newLabel.trim()}
+          className="rounded-full bg-coral-500 px-5 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main Page ----------
 
 export default function EventDetailPage() {
@@ -811,6 +978,15 @@ export default function EventDetailPage() {
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* Checklist */}
+                <div className="mb-6">
+                  <ChecklistSection
+                    eventId={event.id}
+                    checklist={event.checklist}
+                    isOrganizer={isOrganizer()}
+                  />
                 </div>
 
                 {/* Comments */}

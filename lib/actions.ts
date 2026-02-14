@@ -2,8 +2,59 @@
 
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { sendPushToGroup, sendPushToUser } from "@/lib/push";
 
-// ---------- Create ----------
+// ==================== GROUPS ====================
+
+function generateCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no O/0/I/1
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+export async function createGroup(name: string) {
+  if (!name.trim()) return { error: "Le nom du groupe est requis." };
+
+  // Generate unique code
+  let code = generateCode();
+  let exists = await prisma.group.findUnique({ where: { code } });
+  while (exists) {
+    code = generateCode();
+    exists = await prisma.group.findUnique({ where: { code } });
+  }
+
+  const group = await prisma.group.create({
+    data: { name: name.trim(), code },
+  });
+
+  return { group };
+}
+
+export async function joinGroup(code: string) {
+  if (!code.trim()) return { error: "Le code est requis." };
+
+  const group = await prisma.group.findUnique({
+    where: { code: code.trim().toUpperCase() },
+  });
+
+  if (!group) return { error: "Code introuvable. Vérifiez et réessayez." };
+
+  return { group };
+}
+
+export async function getGroup(id: string) {
+  return prisma.group.findUnique({ where: { id } });
+}
+
+export async function getGroups(ids: string[]) {
+  if (ids.length === 0) return [];
+  return prisma.group.findMany({ where: { id: { in: ids } } });
+}
+
+// ==================== EVENTS ====================
 
 export async function createEvent(formData: FormData) {
   const title = formData.get("title") as string;
@@ -21,6 +72,7 @@ export async function createEvent(formData: FormData) {
   const organizer = formData.get("organizer") as string;
   const ageMin = formData.get("ageMin") as string | null;
   const ageMax = formData.get("ageMax") as string | null;
+  const groupId = formData.get("groupId") as string | null;
   const recurrence = formData.get("recurrence") as string | null;
   const recurrenceCount = formData.get("recurrenceCount") as string | null;
 
@@ -42,6 +94,7 @@ export async function createEvent(formData: FormData) {
     organizer,
     ageMin: ageMin ? parseInt(ageMin, 10) : null,
     ageMax: ageMax ? parseInt(ageMax, 10) : null,
+    groupId: groupId || null,
     attendees: "[]",
   };
 
@@ -66,12 +119,7 @@ export async function createEvent(formData: FormData) {
         ? new Date(eventDate.getTime() + duration)
         : null;
 
-      events.push({
-        ...baseData,
-        date: eventDate,
-        endDate: eventEnd,
-        seriesId,
-      });
+      events.push({ ...baseData, date: eventDate, endDate: eventEnd, seriesId });
     }
 
     await prisma.event.createMany({ data: events });
@@ -86,14 +134,27 @@ export async function createEvent(formData: FormData) {
     });
   }
 
+  // Push notification to group members
+  if (groupId) {
+    sendPushToGroup(groupId, {
+      title: `Nouvelle sortie : ${title}`,
+      body: `${organizer} propose "${title}" — ${location}`,
+      url: "/events",
+    }).catch(() => {});
+  }
+
   redirect("/events");
 }
 
-// ---------- Read ----------
+export async function getEvents(groupIds?: string[]) {
+  const where = groupIds && groupIds.length > 0
+    ? { groupId: { in: groupIds } }
+    : {};
 
-export async function getEvents() {
   const events = await prisma.event.findMany({
+    where,
     orderBy: { date: "asc" },
+    include: { group: true },
   });
 
   return events.map((e) => ({
@@ -105,7 +166,11 @@ export async function getEvents() {
 export async function getEvent(id: string) {
   const event = await prisma.event.findUnique({
     where: { id },
-    include: { comments: { orderBy: { createdAt: "asc" } } },
+    include: {
+      comments: { orderBy: { createdAt: "asc" } },
+      checklist: true,
+      group: true,
+    },
   });
 
   if (!event) return null;
@@ -115,8 +180,6 @@ export async function getEvent(id: string) {
     attendees: JSON.parse(event.attendees) as string[],
   };
 }
-
-// ---------- Update ----------
 
 export async function updateEvent(id: string, formData: FormData) {
   const title = formData.get("title") as string;
@@ -139,7 +202,6 @@ export async function updateEvent(id: string, formData: FormData) {
     return { error: "Titre, date, lieu, description et organisateur sont requis." };
   }
 
-  // Keep existing image if no new one provided
   const existingEvent = await prisma.event.findUnique({ where: { id } });
   const finalImage = image || existingEvent?.image || null;
 
@@ -167,14 +229,12 @@ export async function updateEvent(id: string, formData: FormData) {
   return { success: true };
 }
 
-// ---------- Delete ----------
-
 export async function deleteEvent(id: string) {
   await prisma.event.delete({ where: { id } });
   redirect("/events");
 }
 
-// ---------- Subscribe ----------
+// ==================== SUBSCRIBE ====================
 
 export async function subscribeToEvent(eventId: string, name: string) {
   const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -194,10 +254,17 @@ export async function subscribeToEvent(eventId: string, name: string) {
     data: { attendees: JSON.stringify(attendees) },
   });
 
+  // Notify organizer
+  sendPushToUser(event.organizer, {
+    title: `${name} s'est inscrit(e) !`,
+    body: `${name} participe à "${event.title}"`,
+    url: `/events/${eventId}`,
+  }).catch(() => {});
+
   return { attendees };
 }
 
-// ---------- Comments ----------
+// ==================== COMMENTS ====================
 
 export async function addComment(eventId: string, author: string, content: string) {
   if (!author.trim() || !content.trim()) {
@@ -212,5 +279,73 @@ export async function addComment(eventId: string, author: string, content: strin
     },
   });
 
+  // Notify attendees + organizer
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (event) {
+    const attendees = JSON.parse(event.attendees) as string[];
+    const toNotify = [...new Set([event.organizer, ...attendees])].filter(
+      (n) => n !== author.trim()
+    );
+    for (const user of toNotify) {
+      sendPushToUser(user, {
+        title: `Nouveau message de ${author.trim()}`,
+        body: content.trim().slice(0, 100),
+        url: `/events/${eventId}`,
+      }).catch(() => {});
+    }
+  }
+
   return { comment };
+}
+
+// ==================== CHECKLIST ====================
+
+export async function addChecklistItem(eventId: string, label: string) {
+  if (!label.trim()) return { error: "Intitulé requis." };
+
+  const item = await prisma.checklistItem.create({
+    data: { eventId, label: label.trim() },
+  });
+
+  return { item };
+}
+
+export async function claimChecklistItem(itemId: string, username: string) {
+  const item = await prisma.checklistItem.update({
+    where: { id: itemId },
+    data: { claimedBy: username || null },
+  });
+  return { item };
+}
+
+export async function removeChecklistItem(itemId: string) {
+  await prisma.checklistItem.delete({ where: { id: itemId } });
+  return { success: true };
+}
+
+// ==================== PUSH SUBSCRIPTIONS ====================
+
+export async function savePushSubscription(
+  subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
+  username: string,
+  groupIds: string[]
+) {
+  await prisma.pushSubscription.upsert({
+    where: { endpoint: subscription.endpoint },
+    update: {
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      username,
+      groupIds: JSON.stringify(groupIds),
+    },
+    create: {
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      username,
+      groupIds: JSON.stringify(groupIds),
+    },
+  });
+
+  return { success: true };
 }

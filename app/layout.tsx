@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import NotificationBanner from "@/components/NotificationBanner";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -21,9 +22,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={nunito.className}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#FF6B6B" />
+        <link rel="icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body className="antialiased">
         <Navbar />
         {children}
+        <NotificationBanner />
       </body>
     </html>
   );
