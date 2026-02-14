@@ -329,6 +329,15 @@ export default function GroupsPage() {
                   >
                     {copiedCode === group.code ? t("groups.copied") : t("groups.copy")}
                   </button>
+                  <button
+                    onClick={() => setShareGroup(group)}
+                    className="rounded-full border border-coral-200 p-1.5 text-coral-500 hover:bg-coral-50 transition-colors"
+                    aria-label="QR Code"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                      <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm11-2h2v2h-2v-2zm-4 0h2v2h-2v-2zm0 4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm0-4h2v2h-2v-2zm0 8h2v2h-2v-2zm-4 0h2v2h-2v-2z"/>
+                    </svg>
+                  </button>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -338,12 +347,6 @@ export default function GroupsPage() {
                   >
                     {t("groups.viewGroupEvents")} &rarr;
                   </Link>
-                  <button
-                    onClick={() => setShareGroup(group)}
-                    className="rounded-full border border-coral-200 px-3 py-1 text-xs font-semibold text-coral-500 hover:bg-coral-50 transition-colors"
-                  >
-                    {t("groups.share")}
-                  </button>
                 </div>
               </div>
             ))}
