@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Hero from "@/components/Hero";
 import WhySection from "@/components/WhySection";
 import HowItWorks from "@/components/HowItWorks";
@@ -39,14 +38,6 @@ export default function Home() {
       <FinalCTA />
 
       <footer className="bg-cream px-6 py-8 text-center text-sm text-charcoal-faint">
-        <div className="mb-4">
-          <Link
-            href="/events"
-            className="inline-flex items-center rounded-full bg-coral-100 px-6 py-2.5 text-sm font-bold text-coral-500 transition-all hover:bg-coral-200"
-          >
-            Voir les sorties 🎈
-          </Link>
-        </div>
         <p>Coco &mdash; Copains du coin &copy; {new Date().getFullYear()} &mdash; Fait avec amour par des parents, pour des parents.</p>
       </footer>
     </main>
