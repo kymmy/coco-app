@@ -1,9 +1,11 @@
 "use client";
 
 import { useT } from "@/lib/i18n";
+import { useInView } from "@/lib/useInView";
 
 export default function WhySection() {
   const t = useT();
+  const { ref: gridRef, inView } = useInView();
 
   const painPoints = [
     {
@@ -46,11 +48,12 @@ export default function WhySection() {
           {t("why.subtitle")}
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          {painPoints.map((point) => (
+        <div ref={gridRef} className="grid gap-6 sm:grid-cols-2">
+          {painPoints.map((point, i) => (
             <div
               key={point.emoji}
-              className={`rounded-3xl border ${point.border} ${point.bg} p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+              className={`rounded-3xl border ${point.border} ${point.bg} p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 100}ms backwards` } : undefined}
             >
               <div className="mb-4 text-4xl">{point.emoji}</div>
               <h3 className="mb-2 text-lg font-bold text-charcoal">

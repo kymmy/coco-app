@@ -136,6 +136,18 @@ function ShareButton({ event }: { event: CocoEvent }) {
 
 // ---------- Event Card ----------
 
+const CATEGORY_STRIP: Record<string, string> = {
+  parc: "bg-gradient-to-r from-mint-300 to-mint-500",
+  sport: "bg-gradient-to-r from-sky-300 to-sky-500",
+  musee: "bg-gradient-to-r from-lavender-300 to-lavender-500",
+  spectacle: "bg-gradient-to-r from-pink-300 to-pink-500",
+  restaurant: "bg-gradient-to-r from-coral-300 to-coral-500",
+  atelier: "bg-gradient-to-r from-amber-300 to-amber-500",
+  piscine: "bg-gradient-to-r from-sky-400 to-sky-500",
+  balade: "bg-gradient-to-r from-mint-400 to-mint-500",
+  autre: "bg-gradient-to-r from-coral-300 to-coral-400",
+};
+
 function EventCard({ event: initial }: { event: CocoEvent }) {
   const t = useT();
   const { locale } = useI18n();
@@ -238,7 +250,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
       className={`overflow-hidden rounded-3xl bg-card shadow-md transition-shadow hover:shadow-lg ${isPast ? "opacity-60" : ""}`}
     >
       <Link href={`/events/${event.id}`} className="block">
-        {event.image && (
+        {event.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={event.image}
@@ -246,6 +258,8 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
             className="h-48 w-full object-cover"
             loading="lazy"
           />
+        ) : (
+          <div className={`h-2 w-full ${CATEGORY_STRIP[event.category] || CATEGORY_STRIP.autre}`} />
         )}
       </Link>
 

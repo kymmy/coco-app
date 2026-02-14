@@ -1,9 +1,11 @@
 "use client";
 
 import { useT } from "@/lib/i18n";
+import { useInView } from "@/lib/useInView";
 
 export default function HowItWorks() {
   const t = useT();
+  const { ref: gridRef, inView } = useInView();
 
   const steps = [
     {
@@ -45,11 +47,12 @@ export default function HowItWorks() {
           {t("how.subtitle")}
         </p>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {steps.map((step) => (
+        <div ref={gridRef} className="grid gap-8 md:grid-cols-3">
+          {steps.map((step, i) => (
             <article
               key={step.number}
-              className={`relative rounded-3xl ${step.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+              className={`relative rounded-3xl ${step.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 120}ms backwards` } : undefined}
             >
               <div
                 className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${step.bubbleBg} text-2xl font-extrabold text-white shadow-md`}

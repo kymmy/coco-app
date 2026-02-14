@@ -1,9 +1,45 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { useInView } from "@/lib/useInView";
+
+function AnimatedValue({ value, animate }: { value: string; animate: boolean }) {
+  const [display, setDisplay] = useState(value);
+
+  useEffect(() => {
+    if (!animate) return;
+
+    const match = value.match(/(\d+)/);
+    if (!match) {
+      setDisplay(value);
+      return;
+    }
+
+    const target = parseInt(match[1]);
+    const prefix = value.slice(0, match.index);
+    const suffix = value.slice(match.index! + match[1].length);
+    const steps = 24;
+    const interval = 800 / steps;
+    let step = 0;
+
+    const timer = setInterval(() => {
+      step++;
+      const progress = 1 - Math.pow(1 - step / steps, 3);
+      const current = Math.round(target * progress);
+      setDisplay(`${prefix}${current}${suffix}`);
+      if (step >= steps) clearInterval(timer);
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, [animate, value]);
+
+  return <>{display}</>;
+}
 
 export default function SocialProof() {
   const t = useT();
+  const { ref: gridRef, inView } = useInView();
 
   const stats = [
     {
@@ -42,14 +78,15 @@ export default function SocialProof() {
           {t("social.subtitle")}
         </p>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {stats.map((stat) => (
+        <div ref={gridRef} className="grid gap-8 md:grid-cols-3">
+          {stats.map((stat, i) => (
             <article
               key={stat.label}
-              className={`rounded-3xl border ${stat.border} ${stat.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+              className={`rounded-3xl border ${stat.border} ${stat.bg} p-8 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 120}ms backwards` } : undefined}
             >
               <div className={`mb-2 text-4xl font-extrabold ${stat.accent}`}>
-                {stat.value}
+                <AnimatedValue value={stat.value} animate={inView === true} />
               </div>
               <div className="mb-2 text-lg font-bold text-charcoal">
                 {stat.label}

@@ -1,9 +1,11 @@
 "use client";
 
 import { useT } from "@/lib/i18n";
+import { useInView } from "@/lib/useInView";
 
 export default function Community() {
   const t = useT();
+  const { ref: gridRef, inView } = useInView();
 
   const bullets = [
     {
@@ -46,11 +48,12 @@ export default function Community() {
           {t("community.subtitle")}
         </p>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          {bullets.map((bullet) => (
+        <div ref={gridRef} className="grid gap-6 sm:grid-cols-2">
+          {bullets.map((bullet, i) => (
             <article
               key={bullet.emoji}
-              className={`flex gap-4 rounded-3xl border ${bullet.border} ${bullet.bg} p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md`}
+              className={`flex gap-4 rounded-3xl border ${bullet.border} ${bullet.bg} p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 100}ms backwards` } : undefined}
             >
               <div className="mt-0.5 text-3xl">{bullet.emoji}</div>
               <div>

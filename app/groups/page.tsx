@@ -196,8 +196,21 @@ export default function GroupsPage() {
 
         {/* Group list */}
         {loading ? (
-          <div className="py-12 text-center text-charcoal-muted">
-            {t("groups.loading")}
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="animate-pulse rounded-3xl bg-card p-6 shadow-md">
+                <div className="mb-3 flex items-start justify-between">
+                  <div className="h-6 w-40 rounded-lg bg-coral-100" />
+                  <div className="h-4 w-16 rounded bg-coral-50" />
+                </div>
+                <div className="mb-4 flex items-center gap-2">
+                  <div className="h-4 w-24 rounded bg-coral-50" />
+                  <div className="h-8 w-20 rounded-lg bg-coral-100" />
+                  <div className="h-7 w-16 rounded-full bg-coral-100" />
+                </div>
+                <div className="h-4 w-36 rounded bg-coral-50" />
+              </div>
+            ))}
           </div>
         ) : groups.length === 0 ? (
           <div className="rounded-3xl bg-card p-12 text-center shadow-md">

@@ -75,7 +75,7 @@ export default function FinalCTA() {
                 type="email"
                 name="email"
                 placeholder="votre@email.com"
-                className="w-full rounded-full border border-coral-200 bg-card px-5 py-4 text-charcoal placeholder:text-charcoal-faint focus:border-coral-400 focus:outline-none focus:ring-2 focus:ring-coral-200"
+                className="w-full rounded-full border border-coral-200 bg-card px-5 py-3 text-charcoal placeholder:text-charcoal-faint focus:border-coral-400 focus:outline-none focus:ring-2 focus:ring-coral-200"
                 aria-invalid={error ? "true" : "false"}
                 aria-describedby={error ? "cta-email-error" : undefined}
               />
@@ -85,7 +85,7 @@ export default function FinalCTA() {
             </div>
             <button
               type="submit"
-              className="shrink-0 cursor-pointer rounded-full bg-coral-500 px-8 py-4 font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-300 focus-visible:ring-offset-2 active:scale-95"
+              className="shrink-0 cursor-pointer rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral-300 focus-visible:ring-offset-2 active:scale-95 sm:self-end"
             >
               {t("cta.submit")}
             </button>

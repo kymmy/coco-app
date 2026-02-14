@@ -152,7 +152,17 @@ export default function SettingsPage() {
           </h2>
 
           {loadingGroups ? (
-            <p className="text-sm text-charcoal-muted">{t("settings.loading")}</p>
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="animate-pulse flex items-center justify-between rounded-xl border-2 border-coral-100 px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-28 rounded bg-coral-100" />
+                    <div className="h-5 w-14 rounded-lg bg-coral-50" />
+                  </div>
+                  <div className="h-4 w-14 rounded bg-coral-50" />
+                </div>
+              ))}
+            </div>
           ) : groups.length === 0 ? (
             <p className="text-sm text-charcoal-muted">
               {t("settings.noGroups")}

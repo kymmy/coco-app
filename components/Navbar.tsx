@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n";
@@ -8,9 +9,19 @@ export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const t = useT();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 8);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-coral-100 bg-cream/80 backdrop-blur-md">
+    <nav className={`sticky top-0 z-50 border-b border-coral-100 bg-cream/80 backdrop-blur-md transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/" className="text-xl font-extrabold text-charcoal">
           Coco <span className="text-coral-500">🥥</span>
