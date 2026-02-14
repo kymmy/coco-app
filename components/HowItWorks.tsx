@@ -1,45 +1,48 @@
-const steps = [
-  {
-    number: "1",
-    emoji: "🏫",
-    title: "Créez ou rejoignez un groupe",
-    description:
-      "Créez un groupe pour votre école ou classe et partagez le code d'invitation avec les autres parents.",
-    bg: "bg-coral-100",
-    bubbleBg: "bg-coral-500",
-    accent: "text-coral-500",
-  },
-  {
-    number: "2",
-    emoji: "📍",
-    title: "Proposez une sortie",
-    description:
-      "Parc, goûter, musée, piscine… Créez une sortie en quelques secondes et les parents du groupe sont prévenus.",
-    bg: "bg-mint-100",
-    bubbleBg: "bg-mint-500",
-    accent: "text-mint-500",
-  },
-  {
-    number: "3",
-    emoji: "🎉",
-    title: "Organisez-vous ensemble",
-    description:
-      "Inscrivez-vous, précisez qui apporte quoi, recevez un rappel la veille. Vous n'avez plus qu'à en profiter !",
-    bg: "bg-sky-100",
-    bubbleBg: "bg-sky-500",
-    accent: "text-sky-500",
-  },
-];
+"use client";
+
+import { useT } from "@/lib/i18n";
 
 export default function HowItWorks() {
+  const t = useT();
+
+  const steps = [
+    {
+      number: "1",
+      emoji: "🏫",
+      title: t("how.step1Title"),
+      description: t("how.step1Desc"),
+      bg: "bg-coral-100",
+      bubbleBg: "bg-coral-500",
+      accent: "text-coral-500",
+    },
+    {
+      number: "2",
+      emoji: "📍",
+      title: t("how.step2Title"),
+      description: t("how.step2Desc"),
+      bg: "bg-mint-100",
+      bubbleBg: "bg-mint-500",
+      accent: "text-mint-500",
+    },
+    {
+      number: "3",
+      emoji: "🎉",
+      title: t("how.step3Title"),
+      description: t("how.step3Desc"),
+      bg: "bg-sky-100",
+      bubbleBg: "bg-sky-500",
+      accent: "text-sky-500",
+    },
+  ];
+
   return (
     <section className="bg-warm-white px-6 py-20 sm:px-12 lg:px-24">
       <div className="mx-auto max-w-5xl">
         <h2 className="mb-4 text-center text-3xl font-extrabold text-charcoal sm:text-4xl">
-          Comment ça marche&nbsp;? 🧩
+          {t("how.title")}
         </h2>
         <p className="mx-auto mb-14 max-w-xl text-center text-charcoal-muted">
-          3 étapes, zéro prise de tête.
+          {t("how.subtitle")}
         </p>
 
         <div className="grid gap-8 md:grid-cols-3">

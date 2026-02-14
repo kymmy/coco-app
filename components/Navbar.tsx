@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useT } from "@/lib/i18n";
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const t = useT();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-coral-100 bg-cream/80 backdrop-blur-md">
@@ -23,7 +25,7 @@ export default function Navbar() {
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
             }`}
           >
-            Groupes
+            {t("nav.groups")}
           </Link>
           <Link
             href="/events"
@@ -33,7 +35,7 @@ export default function Navbar() {
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
             }`}
           >
-            Sorties
+            {t("nav.events")}
           </Link>
           <Link
             href="/settings"
@@ -42,8 +44,8 @@ export default function Navbar() {
                 ? "bg-coral-500 text-white"
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
             }`}
-            aria-label="Réglages"
-            title="Réglages"
+            aria-label={t("nav.settings")}
+            title={t("nav.settings")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +69,7 @@ export default function Navbar() {
                 : "border-2 border-coral-500 text-coral-500 hover:bg-coral-50"
             }`}
           >
-            + Créer
+            {t("nav.create")}
           </Link>
         </div>
       </div>

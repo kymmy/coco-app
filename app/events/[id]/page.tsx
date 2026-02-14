@@ -16,22 +16,7 @@ import {
   addEventPhoto,
   removeEventPhoto,
 } from "@/lib/actions";
-
-const CATEGORIES = [
-  { value: "parc", label: "🌳 Parc / Plein air" },
-  { value: "sport", label: "⚽ Sport" },
-  { value: "musee", label: "🎨 Musée / Expo" },
-  { value: "spectacle", label: "🎭 Spectacle" },
-  { value: "restaurant", label: "🍕 Restaurant / Goûter" },
-  { value: "atelier", label: "✂️ Atelier / Loisir créatif" },
-  { value: "piscine", label: "🏊 Piscine / Baignade" },
-  { value: "balade", label: "🚶 Balade / Rando" },
-  { value: "autre", label: "📌 Autre" },
-];
-
-const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
-  CATEGORIES.map((c) => [c.value, c.label])
-);
+import { useT, useI18n } from "@/lib/i18n";
 
 const OUTDOOR_CATEGORIES = ["parc", "balade", "sport", "piscine"];
 
@@ -88,8 +73,8 @@ interface WeatherData {
   weatherCode: number;
 }
 
-function formatDateFR(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -99,15 +84,15 @@ function formatDateFR(date: Date): string {
   }).format(new Date(date));
 }
 
-function formatTimeFR(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatTime(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(date));
 }
 
-function formatCommentDate(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatCommentDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -184,24 +169,24 @@ function downloadICS(event: CocoEvent) {
   URL.revokeObjectURL(url);
 }
 
-function formatAgeRange(min: number | null, max: number | null): string | null {
-  if (min != null && max != null) return `${min}–${max} ans`;
-  if (min != null) return `dès ${min} ans`;
-  if (max != null) return `jusqu'à ${max} ans`;
+function formatAgeRange(min: number | null, max: number | null, t: Function): string | null {
+  if (min != null && max != null) return t("age.range", min, max);
+  if (min != null) return t("age.from", min);
+  if (max != null) return t("age.upTo", max);
   return null;
 }
 
-function weatherCodeToLabel(code: number): string {
-  if (code === 0) return "Ciel dégagé";
-  if (code <= 3) return "Partiellement nuageux";
-  if (code <= 48) return "Brouillard";
-  if (code <= 57) return "Bruine";
-  if (code <= 67) return "Pluie";
-  if (code <= 77) return "Neige";
-  if (code <= 82) return "Averses";
-  if (code <= 86) return "Averses de neige";
-  if (code <= 99) return "Orage";
-  return "Inconnu";
+function weatherCodeToLabel(code: number, t: Function): string {
+  if (code === 0) return t("weather.clearSky");
+  if (code <= 3) return t("weather.partlyCloudy");
+  if (code <= 48) return t("weather.fog");
+  if (code <= 57) return t("weather.drizzle");
+  if (code <= 67) return t("weather.rain");
+  if (code <= 77) return t("weather.snow");
+  if (code <= 82) return t("weather.showers");
+  if (code <= 86) return t("weather.snowShowers");
+  if (code <= 99) return t("weather.thunderstorm");
+  return t("weather.unknown");
 }
 
 function weatherCodeToEmoji(code: number): string {
@@ -313,6 +298,7 @@ function WeatherPreview({
 }: {
   event: CocoEvent;
 }) {
+  const t = useT();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -371,7 +357,7 @@ function WeatherPreview({
           {weather.tempMin}° / {weather.tempMax}°C
         </p>
         <p className="text-xs text-sky-500">
-          {weatherCodeToLabel(weather.weatherCode)}
+          {weatherCodeToLabel(weather.weatherCode, t)}
         </p>
       </div>
     </div>
@@ -389,6 +375,7 @@ function PhotoGallery({
   photos: EventPhoto[];
   isOrganizer: boolean;
 }) {
+  const t = useT();
   const [photos, setPhotos] = useState(initialPhotos);
   const [isPending, startTransition] = useTransition();
   const [username, setUsername] = useState("");
@@ -436,7 +423,7 @@ function PhotoGallery({
   return (
     <div>
       <h3 className="mb-4 text-lg font-extrabold text-charcoal">
-        Photos ({photos.length})
+        {t("photos.title")} ({photos.length})
       </h3>
 
       {username && (
@@ -453,7 +440,7 @@ function PhotoGallery({
             disabled={isPending}
             className="rounded-full bg-coral-500 px-5 py-2.5 text-sm font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
           >
-            {isPending ? "Envoi..." : "Ajouter une photo 📸"}
+            {isPending ? t("photos.uploading") : t("photos.addPhoto")}
           </button>
         </div>
       )}
@@ -478,7 +465,7 @@ function PhotoGallery({
                 <button
                   onClick={() => handleRemove(photo.id)}
                   disabled={isPending}
-                  className="absolute top-2 right-2 rounded-full bg-white/80 px-2 py-1 text-xs font-bold text-pink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-white disabled:opacity-50"
+                  className="absolute top-2 right-2 rounded-full bg-white/80 px-2 py-1 text-xs font-bold text-pink-500 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-card disabled:opacity-50"
                 >
                   ✕
                 </button>
@@ -490,7 +477,7 @@ function PhotoGallery({
 
       {photos.length === 0 && (
         <p className="text-sm text-charcoal-muted">
-          Aucune photo pour le moment. Partagez vos souvenirs !
+          {t("photos.noPhotos")}
         </p>
       )}
     </div>
@@ -508,6 +495,7 @@ function EditForm({
   onCancel: () => void;
   onSaved: () => void;
 }) {
+  const t = useT();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState(event.location);
@@ -519,6 +507,18 @@ function EditForm({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const { suggestions, loading } = useAddressSearch(location);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const CATEGORIES = [
+    { value: "parc", label: t("cat.parc") },
+    { value: "sport", label: t("cat.sport") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "atelier", label: t("cat.atelier") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "balade", label: t("cat.balade") },
+    { value: "autre", label: t("cat.autre") },
+  ];
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -556,12 +556,12 @@ function EditForm({
       )}
 
       <div>
-        <label htmlFor="edit-title" className="mb-1 block text-sm font-bold text-charcoal">Titre *</label>
+        <label htmlFor="edit-title" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.title")}</label>
         <input type="text" id="edit-title" name="title" required defaultValue={event.title} className={inputClass} />
       </div>
 
       <div>
-        <label htmlFor="edit-category" className="mb-1 block text-sm font-bold text-charcoal">Catégorie</label>
+        <label htmlFor="edit-category" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.category")}</label>
         <select id="edit-category" name="category" defaultValue={event.category} className={`${inputClass} cursor-pointer`}>
           {CATEGORIES.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
@@ -570,23 +570,23 @@ function EditForm({
       </div>
 
       <div>
-        <label htmlFor="edit-organizer" className="mb-1 block text-sm font-bold text-charcoal">Organisateur *</label>
+        <label htmlFor="edit-organizer" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.organizer")}</label>
         <input type="text" id="edit-organizer" name="organizer" required defaultValue={event.organizer} className={inputClass} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="edit-date" className="mb-1 block text-sm font-bold text-charcoal">Début *</label>
+          <label htmlFor="edit-date" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.start")}</label>
           <input type="datetime-local" id="edit-date" name="date" required defaultValue={toLocalDatetime(event.date)} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="edit-endDate" className="mb-1 block text-sm font-bold text-charcoal">Fin</label>
+          <label htmlFor="edit-endDate" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.end")}</label>
           <input type="datetime-local" id="edit-endDate" name="endDate" defaultValue={event.endDate ? toLocalDatetime(event.endDate) : ""} className={inputClass} />
         </div>
       </div>
 
       <div ref={wrapperRef} className="relative">
-        <label htmlFor="edit-location" className="mb-1 block text-sm font-bold text-charcoal">Lieu *</label>
+        <label htmlFor="edit-location" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.location")}</label>
         <input
           type="text"
           id="edit-location"
@@ -598,9 +598,9 @@ function EditForm({
           className={inputClass}
         />
         {showSuggestions && (suggestions.length > 0 || loading) && (
-          <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border-2 border-coral-200 bg-white shadow-lg">
+          <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border-2 border-coral-200 bg-card shadow-lg">
             {loading && suggestions.length === 0 && (
-              <li className="px-4 py-3 text-sm text-charcoal-muted">Recherche...</li>
+              <li className="px-4 py-3 text-sm text-charcoal-muted">{t("edit.searching")}</li>
             )}
             {suggestions.map((s) => (
               <li key={s.label}>
@@ -620,33 +620,33 @@ function EditForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="edit-price" className="mb-1 block text-sm font-bold text-charcoal">Tarif</label>
+          <label htmlFor="edit-price" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.price")}</label>
           <input type="text" id="edit-price" name="price" defaultValue={event.price} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="edit-max" className="mb-1 block text-sm font-bold text-charcoal">Places max</label>
+          <label htmlFor="edit-max" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.maxSpots")}</label>
           <input type="number" id="edit-max" name="maxParticipants" min="2" defaultValue={event.maxParticipants ?? ""} className={inputClass} />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="edit-ageMin" className="mb-1 block text-sm font-bold text-charcoal">Âge min</label>
+          <label htmlFor="edit-ageMin" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.ageMin")}</label>
           <input type="number" id="edit-ageMin" name="ageMin" min="0" max="17" defaultValue={event.ageMin ?? ""} className={inputClass} />
         </div>
         <div>
-          <label htmlFor="edit-ageMax" className="mb-1 block text-sm font-bold text-charcoal">Âge max</label>
+          <label htmlFor="edit-ageMax" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.ageMax")}</label>
           <input type="number" id="edit-ageMax" name="ageMax" min="0" max="17" defaultValue={event.ageMax ?? ""} className={inputClass} />
         </div>
       </div>
 
       <div>
-        <label htmlFor="edit-description" className="mb-1 block text-sm font-bold text-charcoal">Description *</label>
+        <label htmlFor="edit-description" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.description")}</label>
         <textarea id="edit-description" name="description" required rows={4} defaultValue={event.description} className={`${inputClass} resize-none`} />
       </div>
 
       <div>
-        <label htmlFor="edit-eventLink" className="mb-1 block text-sm font-bold text-charcoal">Lien externe</label>
+        <label htmlFor="edit-eventLink" className="mb-1 block text-sm font-bold text-charcoal">{t("edit.externalLink")}</label>
         <input type="url" id="edit-eventLink" name="eventLink" defaultValue={event.eventLink} className={inputClass} />
       </div>
 
@@ -656,14 +656,14 @@ function EditForm({
           disabled={isPending}
           className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
         >
-          {isPending ? "Enregistrement..." : "Enregistrer"}
+          {isPending ? t("edit.saving") : t("edit.save")}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border-2 border-charcoal-faint px-6 py-3 font-semibold text-charcoal-muted hover:bg-gray-50 transition-colors"
+          className="rounded-full border-2 border-charcoal-faint px-6 py-3 font-semibold text-charcoal-muted hover:bg-card-hover transition-colors"
         >
-          Annuler
+          {t("edit.cancel")}
         </button>
       </div>
     </form>
@@ -679,6 +679,8 @@ function CommentSection({
   eventId: string;
   comments: Comment[];
 }) {
+  const t = useT();
+  const { locale } = useI18n();
   const [comments, setComments] = useState(initialComments);
   const [author, setAuthor] = useState("");
   const [content, setContent] = useState("");
@@ -708,7 +710,7 @@ function CommentSection({
   return (
     <div>
       <h3 className="mb-4 text-lg font-extrabold text-charcoal">
-        Discussion ({comments.length})
+        {t("comments.title")} ({comments.length})
       </h3>
 
       {comments.length > 0 && (
@@ -720,7 +722,7 @@ function CommentSection({
                   {c.author}
                 </span>
                 <span className="text-xs text-charcoal-faint">
-                  {formatCommentDate(c.createdAt)}
+                  {formatCommentDate(c.createdAt, locale)}
                 </span>
               </div>
               <p className="text-sm text-charcoal-light">{c.content}</p>
@@ -740,7 +742,7 @@ function CommentSection({
           type="text"
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
-          placeholder="Votre prénom"
+          placeholder={t("comments.firstName")}
           className={inputClass}
         />
         <div className="flex gap-2">
@@ -749,7 +751,7 @@ function CommentSection({
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            placeholder="Votre message..."
+            placeholder={t("comments.message")}
             className={`flex-1 ${inputClass}`}
           />
           <button
@@ -757,7 +759,7 @@ function CommentSection({
             disabled={isPending || !author.trim() || !content.trim()}
             className="rounded-full bg-coral-500 px-5 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
           >
-            {isPending ? "..." : "Envoyer"}
+            {isPending ? "..." : t("comments.send")}
           </button>
         </div>
       </div>
@@ -776,6 +778,7 @@ function ChecklistSection({
   checklist: ChecklistItemType[];
   isOrganizer: boolean;
 }) {
+  const t = useT();
   const [items, setItems] = useState(initialChecklist);
   const [newLabel, setNewLabel] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -830,7 +833,7 @@ function ChecklistSection({
   return (
     <div>
       <h3 className="mb-4 text-lg font-extrabold text-charcoal">
-        Qui apporte quoi ? ({items.filter((i) => i.claimedBy).length}/{items.length})
+        {t("checklist.title")} ({items.filter((i) => i.claimedBy).length}/{items.length})
       </h3>
 
       {items.length > 0 && (
@@ -871,16 +874,16 @@ function ChecklistSection({
                     disabled={isPending}
                     className="rounded-full bg-coral-500 px-3 py-1.5 text-xs font-bold text-white transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
                   >
-                    Je m&apos;en charge
+                    {t("checklist.illTakeCare")}
                   </button>
                 )}
                 {item.claimedBy === username && (
                   <button
                     onClick={() => handleUnclaim(item.id)}
                     disabled={isPending}
-                    className="rounded-full border border-charcoal-faint px-3 py-1.5 text-xs font-semibold text-charcoal-muted hover:bg-white transition-colors disabled:opacity-50"
+                    className="rounded-full border border-charcoal-faint px-3 py-1.5 text-xs font-semibold text-charcoal-muted hover:bg-card transition-colors disabled:opacity-50"
                   >
-                    Annuler
+                    {t("checklist.cancel")}
                   </button>
                 )}
                 {isOrganizer && (
@@ -905,7 +908,7 @@ function ChecklistSection({
           value={newLabel}
           onChange={(e) => setNewLabel(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          placeholder="ex: Gâteau, boissons, ballon..."
+          placeholder={t("checklist.placeholder")}
           className={`flex-1 ${inputClass}`}
         />
         <button
@@ -923,9 +926,26 @@ function ChecklistSection({
 // ---------- Main Page ----------
 
 export default function EventDetailPage() {
+  const t = useT();
+  const { locale } = useI18n();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+
+  const CATEGORIES = [
+    { value: "parc", label: t("cat.parc") },
+    { value: "sport", label: t("cat.sport") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "atelier", label: t("cat.atelier") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "balade", label: t("cat.balade") },
+    { value: "autre", label: t("cat.autre") },
+  ];
+  const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+    CATEGORIES.map((c) => [c.value, c.label])
+  );
 
   const [event, setEvent] = useState<CocoEvent | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1044,7 +1064,7 @@ export default function EventDetailPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12">
         <div className="mx-auto max-w-2xl py-20 text-center text-charcoal-muted">
-          Chargement...
+          {t("events.loading")}
         </div>
       </main>
     );
@@ -1054,16 +1074,16 @@ export default function EventDetailPage() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12">
         <div className="mx-auto max-w-2xl">
-          <div className="rounded-3xl bg-white p-12 text-center shadow-md">
+          <div className="rounded-3xl bg-card p-12 text-center shadow-md">
             <p className="mb-2 text-5xl">🤷</p>
             <p className="text-lg font-bold text-charcoal">
-              Événement introuvable
+              {t("detail.notFound")}
             </p>
             <Link
               href="/events"
               className="mt-6 inline-flex rounded-full bg-coral-500 px-8 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95"
             >
-              Retour aux sorties
+              {t("detail.backToEvents")}
             </Link>
           </div>
         </div>
@@ -1075,7 +1095,7 @@ export default function EventDetailPage() {
   const isFull =
     event.maxParticipants != null &&
     event.attendees.coming.length >= event.maxParticipants;
-  const ageRange = formatAgeRange(event.ageMin, event.ageMax);
+  const ageRange = formatAgeRange(event.ageMin, event.ageMax, t);
   const spotsLeft =
     event.maxParticipants != null
       ? event.maxParticipants - event.attendees.coming.length
@@ -1089,10 +1109,10 @@ export default function EventDetailPage() {
           href="/events"
           className="mb-6 inline-flex items-center text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
         >
-          <span className="mr-1">&larr;</span> Toutes les sorties
+          <span className="mr-1">&larr;</span> {t("detail.allEvents")}
         </Link>
 
-        <div className="overflow-hidden rounded-3xl bg-white shadow-lg">
+        <div className="overflow-hidden rounded-3xl bg-card shadow-lg">
           {event.image && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -1117,7 +1137,7 @@ export default function EventDetailPage() {
                 {/* Badges */}
                 <div className="mb-3 flex flex-wrap items-center gap-2">
                   <span className="inline-block rounded-full bg-coral-100 px-3 py-1 text-xs font-bold text-coral-500">
-                    {isPast ? "Passée" : "A venir"}
+                    {isPast ? t("events.past") : t("events.upcoming")}
                   </span>
                   <span className="inline-block rounded-full bg-lavender-100 px-3 py-1 text-xs font-bold text-lavender-500">
                     {CATEGORY_LABELS[event.category] || event.category}
@@ -1128,7 +1148,7 @@ export default function EventDetailPage() {
                     </span>
                   ) : (
                     <span className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-bold text-mint-500">
-                      Gratuit
+                      {t("events.free")}
                     </span>
                   )}
                   {ageRange && (
@@ -1138,7 +1158,7 @@ export default function EventDetailPage() {
                   )}
                   {event.seriesId && (
                     <span className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-500">
-                      🔁 Récurrent
+                      🔁 {t("events.recurring")}
                     </span>
                   )}
                 </div>
@@ -1150,8 +1170,8 @@ export default function EventDetailPage() {
                 <p className="mb-1 text-charcoal-light">📍 {event.location}</p>
 
                 <p className="mb-1 font-semibold text-coral-500">
-                  📅 {formatDateFR(event.date)}
-                  {event.endDate && ` → ${formatTimeFR(event.endDate)}`}
+                  📅 {formatDate(event.date, locale)}
+                  {event.endDate && ` → ${formatTime(event.endDate, locale)}`}
                 </p>
 
                 {/* Weather Preview for future outdoor events */}
@@ -1163,7 +1183,7 @@ export default function EventDetailPage() {
                   )}
 
                 <p className="mb-4 text-sm text-charcoal-muted">
-                  Organisé par{" "}
+                  {t("events.organizedBy")}{" "}
                   <span className="font-semibold text-charcoal">
                     {event.organizer}
                   </span>
@@ -1180,7 +1200,7 @@ export default function EventDetailPage() {
                     rel="noopener noreferrer"
                     className="mb-6 inline-block text-sm font-semibold text-sky-500 hover:underline"
                   >
-                    🔗 Voir le lien
+                    🔗 {t("events.viewLink")}
                   </a>
                 )}
 
@@ -1190,7 +1210,7 @@ export default function EventDetailPage() {
                     onClick={handleShare}
                     className="rounded-full border-2 border-coral-200 px-5 py-2 text-sm font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
                   >
-                    {shared ? "Lien copié ✓" : "Partager 🔗"}
+                    {shared ? t("detail.linkCopied") : t("detail.share")}
                   </button>
 
                   <a
@@ -1199,14 +1219,14 @@ export default function EventDetailPage() {
                     rel="noopener noreferrer"
                     className="rounded-full border-2 border-sky-200 px-5 py-2 text-sm font-bold text-sky-500 transition-all hover:bg-sky-100 active:scale-95"
                   >
-                    Google Calendar 📅
+                    {t("detail.gCal")}
                   </a>
 
                   <button
                     onClick={() => downloadICS(event)}
                     className="rounded-full border-2 border-lavender-200 px-5 py-2 text-sm font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
                   >
-                    Télécharger .ics 📥
+                    {t("detail.downloadIcs")}
                   </button>
 
                   {isOrganizer() && (
@@ -1215,36 +1235,36 @@ export default function EventDetailPage() {
                         onClick={() => setEditing(true)}
                         className="rounded-full border-2 border-lavender-200 px-5 py-2 text-sm font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
                       >
-                        Modifier ✏️
+                        {t("detail.edit")}
                       </button>
                       <button
                         onClick={() => router.push(`/create?duplicate=${event.id}`)}
                         className="rounded-full border-2 border-sky-200 px-5 py-2 text-sm font-bold text-sky-500 hover:bg-sky-100"
                       >
-                        Dupliquer 📋
+                        {t("detail.duplicate")}
                       </button>
                       {!showDeleteConfirm ? (
                         <button
                           onClick={() => setShowDeleteConfirm(true)}
                           className="rounded-full border-2 border-pink-200 px-5 py-2 text-sm font-bold text-pink-500 transition-all hover:bg-pink-100 active:scale-95"
                         >
-                          Supprimer 🗑️
+                          {t("detail.delete")}
                         </button>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-pink-500 font-semibold">Confirmer ?</span>
+                          <span className="text-sm text-pink-500 font-semibold">{t("detail.confirm")}</span>
                           <button
                             onClick={handleDelete}
                             disabled={isPending}
                             className="rounded-full bg-pink-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-pink-400 active:scale-95 disabled:opacity-50"
                           >
-                            {isPending ? "..." : "Oui, supprimer"}
+                            {isPending ? "..." : t("detail.yesDelete")}
                           </button>
                           <button
                             onClick={() => setShowDeleteConfirm(false)}
-                            className="rounded-full border-2 border-charcoal-faint px-4 py-2 text-sm font-semibold text-charcoal-muted hover:bg-gray-50"
+                            className="rounded-full border-2 border-charcoal-faint px-4 py-2 text-sm font-semibold text-charcoal-muted hover:bg-card-hover"
                           >
-                            Non
+                            {t("detail.no")}
                           </button>
                         </div>
                       )}
@@ -1255,15 +1275,14 @@ export default function EventDetailPage() {
                 {/* Participants */}
                 <div className="mb-6 rounded-2xl bg-coral-50 p-4">
                   <p className="mb-2 text-sm font-bold text-charcoal">
-                    {event.attendees.coming.length} participant
-                    {event.attendees.coming.length !== 1 ? "s" : ""}
+                    {event.attendees.coming.length} {event.attendees.coming.length !== 1 ? t("events.participants") : t("events.participant")}
                     {spotsLeft != null && (
                       <span
                         className={`ml-1 ${spotsLeft <= 2 && spotsLeft > 0 ? "text-pink-500" : "text-charcoal-muted"}`}
                       >
                         {isFull
-                          ? " — complet"
-                          : ` — ${spotsLeft} place${spotsLeft !== 1 ? "s" : ""} restante${spotsLeft !== 1 ? "s" : ""}`}
+                          ? ` — ${t("events.full")}`
+                          : ` — ${spotsLeft === 1 ? t("events.spotLeft", spotsLeft) : t("events.spotsLeft", spotsLeft)}`}
                       </span>
                     )}
                   </p>
@@ -1271,7 +1290,7 @@ export default function EventDetailPage() {
                   {/* Coming */}
                   {event.attendees.coming.length > 0 && (
                     <div className="mb-2">
-                      <p className="mb-1 text-xs font-bold text-mint-500">Je viens</p>
+                      <p className="mb-1 text-xs font-bold text-mint-500">{t("events.coming")}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.coming.map((a) => (
                           <span
@@ -1288,7 +1307,7 @@ export default function EventDetailPage() {
                   {/* Maybe */}
                   {event.attendees.maybe.length > 0 && (
                     <div className="mb-2">
-                      <p className="mb-1 text-xs font-bold text-amber-500">Peut-être</p>
+                      <p className="mb-1 text-xs font-bold text-amber-500">{t("events.maybe")}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.maybe.map((a) => (
                           <span
@@ -1305,7 +1324,7 @@ export default function EventDetailPage() {
                   {/* Can't */}
                   {event.attendees.cant.length > 0 && (
                     <div className="mb-2">
-                      <p className="mb-1 text-xs font-bold text-pink-500">Ne peut pas</p>
+                      <p className="mb-1 text-xs font-bold text-pink-500">{t("events.cantMakeIt")}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.cant.map((a) => (
                           <span
@@ -1328,20 +1347,20 @@ export default function EventDetailPage() {
                             onClick={() => handleRsvp("coming")}
                             className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
                           >
-                            Je viens ✋
+                            {t("events.imComing")}
                           </button>
                           <button
                             onClick={() => handleRsvp("maybe")}
                             className="flex-1 rounded-full border-2 border-amber-300 px-6 py-3 font-bold text-amber-500 shadow transition-all hover:bg-amber-50 hover:shadow-md active:scale-95"
                           >
-                            Peut-être 🤔
+                            {t("events.maybeComing")}
                           </button>
                         </div>
                       )}
 
                       {isFull && !userAlreadyRsvped && !justSubscribed && (
                         <div className="rounded-xl bg-pink-100 px-4 py-3 text-center text-sm font-semibold text-pink-500">
-                          Cette sortie est complète
+                          {t("events.eventFull")}
                         </div>
                       )}
 
@@ -1362,9 +1381,9 @@ export default function EventDetailPage() {
                               onKeyDown={(e) =>
                                 e.key === "Enter" && handleRsvp(rsvpStatus)
                               }
-                              placeholder="Votre prénom"
+                              placeholder={t("events.firstName")}
                               autoFocus
-                              className="flex-1 rounded-xl border-2 border-coral-200 bg-white px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
+                              className="flex-1 rounded-xl border-2 border-coral-200 bg-card px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
                             />
                             <button
                               onClick={() => handleRsvp(rsvpStatus)}
@@ -1375,15 +1394,15 @@ export default function EventDetailPage() {
                             </button>
                             <button
                               onClick={() => setShowRsvp(false)}
-                              className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-white transition-colors"
+                              className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-card transition-colors"
                             >
-                              Annuler
+                              {t("events.cancel")}
                             </button>
                           </div>
                           <p className="text-xs text-charcoal-muted">
                             {rsvpStatus === "coming"
-                              ? "Vous confirmez votre venue ✋"
-                              : "Vous indiquez un peut-être 🤔"}
+                              ? t("detail.confirmComing")
+                              : t("detail.confirmMaybe")}
                           </p>
                         </div>
                       )}
@@ -1395,7 +1414,7 @@ export default function EventDetailPage() {
                           disabled={isPending}
                           className="w-full rounded-full border-2 border-pink-200 px-6 py-3 font-bold text-pink-500 transition-all hover:bg-pink-50 active:scale-95 disabled:opacity-50"
                         >
-                          {isPending ? "..." : "Annuler inscription"}
+                          {isPending ? "..." : t("events.cancelReg")}
                         </button>
                       )}
 
@@ -1407,13 +1426,13 @@ export default function EventDetailPage() {
                             rel="noopener noreferrer"
                             className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-sky-400 hover:shadow-md active:scale-95"
                           >
-                            Ajouter a Google Calendar 📅
+                            {t("events.addGCal")}
                           </a>
                           <button
                             onClick={() => downloadICS(event)}
                             className="inline-flex w-full items-center justify-center rounded-full border-2 border-lavender-200 px-6 py-3 font-bold text-lavender-500 transition-all hover:bg-lavender-100 active:scale-95"
                           >
-                            Télécharger .ics 📥
+                            {t("detail.downloadIcs")}
                           </button>
                         </div>
                       )}

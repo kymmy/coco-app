@@ -22,6 +22,7 @@
   --color-pink-300: #FFB3C6;
   --color-pink-200: #FFD6E0;
   --color-pink-100: #FFECF1;
+  --color-pink-50: #FFF5F7;
 
   /* Mint accent */
   --color-mint-500: #4DB882;
@@ -37,9 +38,22 @@
   --color-lavender-200: #E8D9F2;
   --color-lavender-100: #F3ECF8;
 
+  /* Amber (for "maybe" badges) */
+  --color-amber-600: #d97706;
+  --color-amber-500: #f59e0b;
+  --color-amber-400: #fbbf24;
+  --color-amber-300: #fcd34d;
+  --color-amber-200: #fde68a;
+  --color-amber-100: #fef3c7;
+  --color-amber-50: #fffbeb;
+
   /* Backgrounds */
   --color-cream: #FFFDF7;
   --color-warm-white: #FFFBF5;
+
+  /* Surfaces */
+  --color-card: #ffffff;
+  --color-card-hover: #f9fafb;
 
   /* Text */
   --color-charcoal: #2D2D2D;
@@ -55,4 +69,71 @@ html {
 body {
   color: var(--color-charcoal);
   background-color: var(--color-cream);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark mode overrides                                                */
+/* ------------------------------------------------------------------ */
+html.dark {
+  color-scheme: dark;
+
+  /* Primary coral – brighter for contrast on dark surfaces */
+  --color-coral-500: #FF7B7B;
+  --color-coral-400: #FF9797;
+  --color-coral-300: #FFB8B8;
+  --color-coral-200: #4a2525;
+  --color-coral-100: #3a1f1f;
+  --color-coral-50: #2a1818;
+
+  /* Sky blue */
+  --color-sky-500: #5BB8E1;
+  --color-sky-400: #8ED8F3;
+  --color-sky-300: #1d3340;
+  --color-sky-200: #172a35;
+  --color-sky-100: #12202a;
+
+  /* Soft pink */
+  --color-pink-500: #F8678A;
+  --color-pink-400: #FF9FBB;
+  --color-pink-300: #3d1825;
+  --color-pink-200: #2d1218;
+  --color-pink-100: #231015;
+  --color-pink-50: #1c0e11;
+
+  /* Mint */
+  --color-mint-500: #5DC892;
+  --color-mint-400: #8DEBB3;
+  --color-mint-300: #1d3d2b;
+  --color-mint-200: #172d20;
+  --color-mint-100: #12231a;
+
+  /* Lavender */
+  --color-lavender-500: #AB82D9;
+  --color-lavender-400: #D3B6F0;
+  --color-lavender-300: #2d1d40;
+  --color-lavender-200: #231835;
+  --color-lavender-100: #1d142a;
+
+  /* Amber */
+  --color-amber-600: #fbbf24;
+  --color-amber-500: #fbbf24;
+  --color-amber-400: #f59e0b;
+  --color-amber-300: #3d3510;
+  --color-amber-200: #2d280c;
+  --color-amber-100: #231f0a;
+  --color-amber-50: #1a1708;
+
+  /* Backgrounds */
+  --color-cream: #0f172a;
+  --color-warm-white: #162032;
+
+  /* Surfaces */
+  --color-card: #1e293b;
+  --color-card-hover: #334155;
+
+  /* Text */
+  --color-charcoal: #e2e8f0;
+  --color-charcoal-light: #cbd5e1;
+  --color-charcoal-muted: #94a3b8;
+  --color-charcoal-faint: #64748b;
 }

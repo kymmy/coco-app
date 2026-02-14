@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { createGroup, joinGroup, getGroups } from "@/lib/actions";
 import Link from "next/link";
+import { useT } from "@/lib/i18n";
 
 interface Group {
   id: string;
@@ -34,6 +35,7 @@ const inputClass =
   "w-full rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-3 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors";
 
 export default function GroupsPage() {
+  const t = useT();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -105,11 +107,10 @@ export default function GroupsPage() {
     <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-xl">
         <h1 className="mb-2 text-3xl font-extrabold text-charcoal">
-          Mes groupes <span className="text-coral-500">👨‍👩‍👧‍👦</span>
+          {t("groups.title")} <span className="text-coral-500">👨‍👩‍👧‍👦</span>
         </h1>
         <p className="mb-8 text-charcoal-muted">
-          Créez un groupe pour votre école ou classe, puis partagez le code
-          avec les autres parents.
+          {t("groups.subtitle")}
         </p>
 
         {error && (
@@ -128,7 +129,7 @@ export default function GroupsPage() {
             }}
             className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95"
           >
-            Créer un groupe
+            {t("groups.createGroup")}
           </button>
           <button
             onClick={() => {
@@ -138,22 +139,22 @@ export default function GroupsPage() {
             }}
             className="flex-1 rounded-full border-2 border-coral-500 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
           >
-            Rejoindre
+            {t("groups.join")}
           </button>
         </div>
 
         {/* Create form */}
         {showCreate && (
-          <div className="mb-6 rounded-3xl bg-white p-6 shadow-md">
+          <div className="mb-6 rounded-3xl bg-card p-6 shadow-md">
             <h2 className="mb-3 text-lg font-extrabold text-charcoal">
-              Nouveau groupe
+              {t("groups.newGroup")}
             </h2>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              placeholder="ex: École Jules Ferry - CE2"
+              placeholder={t("groups.newGroupPlaceholder")}
               autoFocus
               className={inputClass}
             />
@@ -162,16 +163,16 @@ export default function GroupsPage() {
               disabled={isPending || !newName.trim()}
               className="mt-3 w-full rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
             >
-              {isPending ? "Création..." : "Créer"}
+              {isPending ? t("groups.creating") : t("groups.create")}
             </button>
           </div>
         )}
 
         {/* Join form */}
         {showJoin && (
-          <div className="mb-6 rounded-3xl bg-white p-6 shadow-md">
+          <div className="mb-6 rounded-3xl bg-card p-6 shadow-md">
             <h2 className="mb-3 text-lg font-extrabold text-charcoal">
-              Rejoindre avec un code
+              {t("groups.joinWithCode")}
             </h2>
             <input
               type="text"
@@ -188,7 +189,7 @@ export default function GroupsPage() {
               disabled={isPending || joinCode.length < 6}
               className="mt-3 w-full rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
             >
-              {isPending ? "Recherche..." : "Rejoindre"}
+              {isPending ? t("groups.searching") : t("groups.join")}
             </button>
           </div>
         )}
@@ -196,16 +197,16 @@ export default function GroupsPage() {
         {/* Group list */}
         {loading ? (
           <div className="py-12 text-center text-charcoal-muted">
-            Chargement...
+            {t("groups.loading")}
           </div>
         ) : groups.length === 0 ? (
-          <div className="rounded-3xl bg-white p-12 text-center shadow-md">
+          <div className="rounded-3xl bg-card p-12 text-center shadow-md">
             <p className="mb-2 text-5xl">🏫</p>
             <p className="text-lg font-bold text-charcoal">
-              Aucun groupe pour le moment
+              {t("groups.noGroups")}
             </p>
             <p className="mt-1 text-charcoal-muted">
-              Créez un groupe ou rejoignez-en un avec un code !
+              {t("groups.noGroupsDesc")}
             </p>
           </div>
         ) : (
@@ -213,7 +214,7 @@ export default function GroupsPage() {
             {groups.map((group) => (
               <div
                 key={group.id}
-                className="rounded-3xl bg-white p-6 shadow-md"
+                className="rounded-3xl bg-card p-6 shadow-md"
               >
                 <div className="mb-3 flex items-start justify-between">
                   <h2 className="text-lg font-extrabold text-charcoal">
@@ -223,13 +224,13 @@ export default function GroupsPage() {
                     onClick={() => handleLeave(group.id)}
                     className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
                   >
-                    Quitter
+                    {t("groups.leave")}
                   </button>
                 </div>
 
                 <div className="mb-4 flex items-center gap-2">
                   <span className="text-sm text-charcoal-muted">
-                    Code d&apos;invitation :
+                    {t("groups.inviteCode")}
                   </span>
                   <span className="rounded-lg bg-coral-50 px-3 py-1 font-mono text-lg font-bold tracking-wider text-coral-500">
                     {group.code}
@@ -238,7 +239,7 @@ export default function GroupsPage() {
                     onClick={() => handleCopyCode(group.code)}
                     className="rounded-full border border-coral-200 px-3 py-1 text-xs font-semibold text-coral-500 hover:bg-coral-50 transition-colors"
                   >
-                    {copiedCode === group.code ? "Copié ✓" : "Copier"}
+                    {copiedCode === group.code ? t("groups.copied") : t("groups.copy")}
                   </button>
                 </div>
 
@@ -246,7 +247,7 @@ export default function GroupsPage() {
                   href="/events"
                   className="inline-flex items-center text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
                 >
-                  Voir les sorties du groupe &rarr;
+                  {t("groups.viewGroupEvents")} &rarr;
                 </Link>
               </div>
             ))}

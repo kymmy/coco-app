@@ -4,24 +4,13 @@ import { useState, useRef, useEffect, useCallback, useTransition, Suspense } fro
 import { useSearchParams } from "next/navigation";
 import { createEvent, getEvent, getGroups } from "@/lib/actions";
 import Link from "next/link";
+import { useT } from "@/lib/i18n";
 
 interface Group {
   id: string;
   name: string;
   code: string;
 }
-
-const CATEGORIES = [
-  { value: "parc", label: "🌳 Parc / Plein air" },
-  { value: "sport", label: "⚽ Sport" },
-  { value: "musee", label: "🎨 Musée / Expo" },
-  { value: "spectacle", label: "🎭 Spectacle" },
-  { value: "restaurant", label: "🍕 Restaurant / Goûter" },
-  { value: "atelier", label: "✂️ Atelier / Loisir créatif" },
-  { value: "piscine", label: "🏊 Piscine / Baignade" },
-  { value: "balade", label: "🚶 Balade / Rando" },
-  { value: "autre", label: "📌 Autre" },
-];
 
 interface AddressSuggestion {
   label: string;
@@ -124,8 +113,21 @@ const inputClass =
   "w-full rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-3 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors";
 
 function CreateEventForm() {
+  const t = useT();
   const searchParams = useSearchParams();
   const duplicateId = searchParams.get("duplicate");
+
+  const CATEGORIES = [
+    { value: "parc", label: t("cat.parc") },
+    { value: "sport", label: t("cat.sport") },
+    { value: "musee", label: t("cat.musee") },
+    { value: "spectacle", label: t("cat.spectacle") },
+    { value: "restaurant", label: t("cat.restaurant") },
+    { value: "atelier", label: t("cat.atelier") },
+    { value: "piscine", label: t("cat.piscine") },
+    { value: "balade", label: t("cat.balade") },
+    { value: "autre", label: t("cat.autre") },
+  ];
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageData, setImageData] = useState<string | null>(null);
@@ -274,8 +276,8 @@ function CreateEventForm() {
     return (
       <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-xl">
-          <div className="rounded-3xl bg-white p-8 shadow-lg text-center">
-            <p className="text-charcoal-muted">Chargement...</p>
+          <div className="rounded-3xl bg-card p-8 shadow-lg text-center">
+            <p className="text-charcoal-muted">{t("events.loading")}</p>
           </div>
         </div>
       </main>
@@ -289,19 +291,19 @@ function CreateEventForm() {
           href="/"
           className="mb-6 inline-flex items-center text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
         >
-          <span className="mr-1">&larr;</span> Retour
+          <span className="mr-1">&larr;</span> {t("create.back")}
         </Link>
 
-        <div className="rounded-3xl bg-white p-8 shadow-lg">
+        <div className="rounded-3xl bg-card p-8 shadow-lg">
           <h1 className="mb-2 text-3xl font-extrabold text-charcoal">
             {isDuplicate ? (
-              <>Dupliquer une sortie <span className="text-coral-500">📋</span></>
+              <>{t("create.duplicateTitle")} <span className="text-coral-500">📋</span></>
             ) : (
-              <>Proposer une sortie <span className="text-coral-500">🎉</span></>
+              <>{t("create.createTitle")} <span className="text-coral-500">🎉</span></>
             )}
           </h1>
           <p className="mb-8 text-charcoal-muted">
-            Remplissez les infos et partagez avec les parents !
+            {t("create.subtitle")}
           </p>
 
           {error && (
@@ -314,7 +316,7 @@ function CreateEventForm() {
             {/* Title */}
             <div>
               <label htmlFor="title" className="mb-1 block text-sm font-bold text-charcoal">
-                Titre de la sortie *
+                {t("create.eventTitle")}
               </label>
               <input
                 type="text"
@@ -322,7 +324,7 @@ function CreateEventForm() {
                 name="title"
                 required
                 defaultValue={defaults.title}
-                placeholder="ex: Sortie au zoo de Lyon"
+                placeholder={t("create.eventTitlePlaceholder")}
                 className={inputClass}
               />
             </div>
@@ -330,7 +332,7 @@ function CreateEventForm() {
             {/* Category */}
             <div>
               <label htmlFor="category" className="mb-1 block text-sm font-bold text-charcoal">
-                Catégorie
+                {t("create.category")}
               </label>
               <select
                 id="category"
@@ -349,7 +351,7 @@ function CreateEventForm() {
             {/* Organizer */}
             <div>
               <label htmlFor="organizer" className="mb-1 block text-sm font-bold text-charcoal">
-                Votre prénom *
+                {t("create.firstName")}
               </label>
               <input
                 type="text"
@@ -358,7 +360,7 @@ function CreateEventForm() {
                 required
                 value={organizer}
                 onChange={(e) => setOrganizer(e.target.value)}
-                placeholder="ex: Sophie"
+                placeholder={t("create.firstNamePlaceholder")}
                 className={inputClass}
               />
             </div>
@@ -367,7 +369,7 @@ function CreateEventForm() {
             {myGroups.length > 0 && (
               <div>
                 <label htmlFor="groupId" className="mb-1 block text-sm font-bold text-charcoal">
-                  Groupe
+                  {t("create.group")}
                 </label>
                 <select
                   id="groupId"
@@ -376,7 +378,7 @@ function CreateEventForm() {
                   onChange={(e) => setSelectedGroupId(e.target.value)}
                   className={`${inputClass} cursor-pointer`}
                 >
-                  <option value="">Aucun groupe</option>
+                  <option value="">{t("create.noGroup")}</option>
                   {myGroups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name}
@@ -390,7 +392,7 @@ function CreateEventForm() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="date" className="mb-1 block text-sm font-bold text-charcoal">
-                  Début *
+                  {t("create.start")}
                 </label>
                 <input
                   type="datetime-local"
@@ -403,7 +405,7 @@ function CreateEventForm() {
               </div>
               <div>
                 <label htmlFor="endDate" className="mb-1 block text-sm font-bold text-charcoal">
-                  Fin
+                  {t("create.end")}
                 </label>
                 <input
                   type="datetime-local"
@@ -418,7 +420,7 @@ function CreateEventForm() {
             {/* Recurrence */}
             <div>
               <label htmlFor="recurrence" className="mb-1 block text-sm font-bold text-charcoal">
-                Récurrence
+                {t("create.recurrence")}
               </label>
               <select
                 id="recurrence"
@@ -427,15 +429,15 @@ function CreateEventForm() {
                 onChange={(e) => setRecurrence(e.target.value)}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="none">Événement unique</option>
-                <option value="weekly">Chaque semaine</option>
-                <option value="biweekly">Toutes les 2 semaines</option>
-                <option value="monthly">Chaque mois</option>
+                <option value="none">{t("create.singleEvent")}</option>
+                <option value="weekly">{t("create.weekly")}</option>
+                <option value="biweekly">{t("create.biweekly")}</option>
+                <option value="monthly">{t("create.monthly")}</option>
               </select>
               {recurrence !== "none" && (
                 <div className="mt-2">
                   <label htmlFor="recurrenceCount" className="mb-1 block text-xs font-bold text-charcoal-muted">
-                    Nombre d&apos;occurrences (max 52)
+                    {t("create.occurrences")}
                   </label>
                   <input
                     type="number"
@@ -453,7 +455,7 @@ function CreateEventForm() {
             {/* Location with autocomplete */}
             <div ref={wrapperRef} className="relative">
               <label htmlFor="location" className="mb-1 block text-sm font-bold text-charcoal">
-                Lieu *
+                {t("create.location")}
               </label>
               <input
                 type="text"
@@ -466,15 +468,15 @@ function CreateEventForm() {
                   setCoords(null);
                 }}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                placeholder="ex: Parc de la Tête d'Or, Lyon"
+                placeholder={t("create.locationPlaceholder")}
                 autoComplete="off"
                 className={inputClass}
               />
               {showSuggestions && (suggestions.length > 0 || loading) && (
-                <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border-2 border-coral-200 bg-white shadow-lg">
+                <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border-2 border-coral-200 bg-card shadow-lg">
                   {loading && suggestions.length === 0 && (
                     <li className="px-4 py-3 text-sm text-charcoal-muted">
-                      Recherche...
+                      {t("create.searching")}
                     </li>
                   )}
                   {suggestions.map((s) => (
@@ -505,20 +507,20 @@ function CreateEventForm() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="price" className="mb-1 block text-sm font-bold text-charcoal">
-                  Tarif
+                  {t("create.price")}
                 </label>
                 <input
                   type="text"
                   id="price"
                   name="price"
-                  placeholder="ex: Gratuit, 5€/enfant..."
+                  placeholder={t("create.pricePlaceholder")}
                   defaultValue={defaults.price}
                   className={inputClass}
                 />
               </div>
               <div>
                 <label htmlFor="maxParticipants" className="mb-1 block text-sm font-bold text-charcoal">
-                  Places max
+                  {t("create.maxSpots")}
                 </label>
                 <input
                   type="number"
@@ -526,7 +528,7 @@ function CreateEventForm() {
                   name="maxParticipants"
                   min="2"
                   defaultValue={defaults.maxParticipants}
-                  placeholder="Illimité"
+                  placeholder={t("create.unlimited")}
                   className={inputClass}
                 />
               </div>
@@ -535,7 +537,7 @@ function CreateEventForm() {
             {/* Age range */}
             <div>
               <label className="mb-1 block text-sm font-bold text-charcoal">
-                Tranche d&apos;âge des enfants
+                {t("create.ageRange")}
               </label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
@@ -546,11 +548,11 @@ function CreateEventForm() {
                     min="0"
                     max="17"
                     defaultValue={defaults.ageMin}
-                    placeholder="Min"
+                    placeholder={t("create.min")}
                     className={inputClass}
                   />
                   <span className="absolute top-1/2 right-4 -translate-y-1/2 text-xs text-charcoal-faint">
-                    ans
+                    {t("create.years")}
                   </span>
                 </div>
                 <div className="relative">
@@ -561,11 +563,11 @@ function CreateEventForm() {
                     min="0"
                     max="17"
                     defaultValue={defaults.ageMax}
-                    placeholder="Max"
+                    placeholder={t("create.max")}
                     className={inputClass}
                   />
                   <span className="absolute top-1/2 right-4 -translate-y-1/2 text-xs text-charcoal-faint">
-                    ans
+                    {t("create.years")}
                   </span>
                 </div>
               </div>
@@ -574,7 +576,7 @@ function CreateEventForm() {
             {/* Description */}
             <div>
               <label htmlFor="description" className="mb-1 block text-sm font-bold text-charcoal">
-                Description *
+                {t("create.description")}
               </label>
               <textarea
                 id="description"
@@ -582,7 +584,7 @@ function CreateEventForm() {
                 required
                 rows={4}
                 defaultValue={defaults.description}
-                placeholder="Décrivez la sortie, l'ambiance, ce qu'il faut prévoir..."
+                placeholder={t("create.descriptionPlaceholder")}
                 className={`${inputClass} resize-none`}
               />
             </div>
@@ -590,7 +592,7 @@ function CreateEventForm() {
             {/* Event link */}
             <div>
               <label htmlFor="eventLink" className="mb-1 block text-sm font-bold text-charcoal">
-                Lien externe
+                {t("create.externalLink")}
               </label>
               <input
                 type="url"
@@ -605,10 +607,10 @@ function CreateEventForm() {
             {/* Image */}
             <div>
               <label htmlFor="image" className="mb-1 block text-sm font-bold text-charcoal">
-                Image (optionnel)
+                {t("create.image")}
               </label>
               <p className="mb-2 text-xs text-charcoal-faint">
-                L&apos;image sera redimensionnée automatiquement.
+                {t("create.imageHint")}
               </p>
               <input
                 type="file"
@@ -622,7 +624,7 @@ function CreateEventForm() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
-                    alt="Aperçu"
+                    alt="Preview"
                     className="h-48 w-full object-cover"
                   />
                 </div>
@@ -635,10 +637,10 @@ function CreateEventForm() {
               className="w-full rounded-full bg-coral-500 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl active:scale-95 disabled:opacity-50"
             >
               {isPending
-                ? "Publication en cours..."
+                ? t("create.publishing")
                 : isDuplicate
-                  ? "Publier la copie 🚀"
-                  : "Publier la sortie 🚀"}
+                  ? t("create.publishCopy")
+                  : t("create.publishEvent")}
             </button>
           </form>
         </div>
@@ -653,8 +655,8 @@ export default function CreateEventPage() {
       fallback={
         <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-xl">
-            <div className="rounded-3xl bg-white p-8 shadow-lg text-center">
-              <p className="text-charcoal-muted">Chargement...</p>
+            <div className="rounded-3xl bg-card p-8 shadow-lg text-center">
+              <p className="text-charcoal-muted">...</p>
             </div>
           </div>
         </main>

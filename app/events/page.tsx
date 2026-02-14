@@ -3,23 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { getEvents, rsvpToEvent, unrsvpFromEvent } from "@/lib/actions";
 import Link from "next/link";
-
-const CATEGORY_LABELS: Record<string, string> = {
-  parc: "🌳 Parc / Plein air",
-  sport: "⚽ Sport",
-  musee: "🎨 Musée / Expo",
-  spectacle: "🎭 Spectacle",
-  restaurant: "🍕 Restaurant / Goûter",
-  atelier: "✂️ Atelier / Loisir créatif",
-  piscine: "🏊 Piscine / Baignade",
-  balade: "🚶 Balade / Rando",
-  autre: "📌 Autre",
-};
-
-const CATEGORY_OPTIONS = [
-  { value: "", label: "Toutes" },
-  ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label })),
-];
+import { useT, useI18n } from "@/lib/i18n";
 
 interface CocoEvent {
   id: string;
@@ -45,8 +29,8 @@ interface CocoEvent {
   attendees: { coming: string[]; maybe: string[]; cant: string[] };
 }
 
-function formatDateFR(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatDate(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -56,8 +40,8 @@ function formatDateFR(date: Date): string {
   }).format(new Date(date));
 }
 
-function formatTimeFR(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatTime(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(date));
@@ -86,11 +70,12 @@ function buildGoogleCalendarUrl(event: CocoEvent): string {
 
 function formatAgeRange(
   min: number | null,
-  max: number | null
+  max: number | null,
+  t: (key: string, ...args: (string | number)[]) => string
 ): string | null {
-  if (min != null && max != null) return `${min}–${max} ans`;
-  if (min != null) return `dès ${min} ans`;
-  if (max != null) return `jusqu'à ${max} ans`;
+  if (min != null && max != null) return t("age.range", min, max);
+  if (min != null) return t("age.from", min);
+  if (max != null) return t("age.upTo", max);
   return null;
 }
 
@@ -107,6 +92,8 @@ function isUserInAttendees(
 }
 
 function EventCard({ event: initial }: { event: CocoEvent }) {
+  const t = useT();
+  const { locale } = useI18n();
   const [event, setEvent] = useState(initial);
   const [showSubscribe, setShowSubscribe] = useState(false);
   const [rsvpStatus, setRsvpStatus] = useState<"coming" | "maybe" | null>(
@@ -116,6 +103,18 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   const [justSubscribed, setJustSubscribed] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    parc: t("cat.parc"),
+    sport: t("cat.sport"),
+    musee: t("cat.musee"),
+    spectacle: t("cat.spectacle"),
+    restaurant: t("cat.restaurant"),
+    atelier: t("cat.atelier"),
+    piscine: t("cat.piscine"),
+    balade: t("cat.balade"),
+    autre: t("cat.autre"),
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("coco_username");
@@ -183,7 +182,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   const isFull =
     event.maxParticipants != null &&
     event.attendees.coming.length >= event.maxParticipants;
-  const ageRange = formatAgeRange(event.ageMin, event.ageMax);
+  const ageRange = formatAgeRange(event.ageMin, event.ageMax, t);
   const spotsLeft =
     event.maxParticipants != null
       ? event.maxParticipants - event.attendees.coming.length
@@ -191,7 +190,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
 
   return (
     <div
-      className={`overflow-hidden rounded-3xl bg-white shadow-md transition-shadow hover:shadow-lg ${isPast ? "opacity-60" : ""}`}
+      className={`overflow-hidden rounded-3xl bg-card shadow-md transition-shadow hover:shadow-lg ${isPast ? "opacity-60" : ""}`}
     >
       <Link href={`/events/${event.id}`} className="block">
         {event.image && (
@@ -208,7 +207,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         {/* Badges row */}
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <span className="inline-block rounded-full bg-coral-100 px-3 py-1 text-xs font-bold text-coral-500">
-            {isPast ? "Passée" : "A venir"}
+            {isPast ? t("events.past") : t("events.upcoming")}
           </span>
           <span className="inline-block rounded-full bg-lavender-100 px-3 py-1 text-xs font-bold text-lavender-500">
             {CATEGORY_LABELS[event.category] || event.category}
@@ -219,7 +218,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
             </span>
           ) : (
             <span className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-bold text-mint-500">
-              Gratuit
+              {t("events.free")}
             </span>
           )}
           {ageRange && (
@@ -229,7 +228,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           )}
           {event.seriesId && (
             <span className="inline-block rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-500">
-              🔁 Récurrent
+              🔁 {t("events.recurring")}
             </span>
           )}
           {event.group && (
@@ -251,12 +250,12 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         </p>
 
         <p className="mb-1 text-sm font-semibold text-coral-500">
-          📅 {formatDateFR(event.date)}
-          {event.endDate && ` → ${formatTimeFR(event.endDate)}`}
+          📅 {formatDate(event.date, locale)}
+          {event.endDate && ` → ${formatTime(event.endDate, locale)}`}
         </p>
 
         <p className="mb-3 text-sm text-charcoal-muted">
-          Organisé par{" "}
+          {t("events.organizedBy")}{" "}
           <span className="font-semibold text-charcoal">
             {event.organizer}
           </span>
@@ -273,22 +272,24 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
             rel="noopener noreferrer"
             className="mb-4 inline-block text-sm font-semibold text-sky-500 hover:underline"
           >
-            🔗 Voir le lien
+            🔗 {t("events.viewLink")}
           </a>
         )}
 
         {/* Participants */}
         <div className="mb-4">
           <p className="mb-1 text-xs font-bold text-charcoal-muted uppercase">
-            {event.attendees.coming.length} participant
-            {event.attendees.coming.length !== 1 ? "s" : ""}
+            {event.attendees.coming.length}{" "}
+            {event.attendees.coming.length !== 1
+              ? t("events.participants")
+              : t("events.participant")}
             {spotsLeft != null && (
               <span
                 className={`ml-1 ${spotsLeft <= 2 && spotsLeft > 0 ? "text-pink-500" : ""}`}
               >
                 {isFull
-                  ? " — complet"
-                  : ` — ${spotsLeft} place${spotsLeft !== 1 ? "s" : ""} restante${spotsLeft !== 1 ? "s" : ""}`}
+                  ? ` — ${t("events.full")}`
+                  : ` — ${spotsLeft === 1 ? t("events.spotLeft", spotsLeft) : t("events.spotsLeft", spotsLeft)}`}
               </span>
             )}
           </p>
@@ -297,7 +298,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           {event.attendees.coming.length > 0 && (
             <div className="mb-1">
               <p className="text-[10px] font-semibold text-mint-500 uppercase mb-0.5">
-                Présents
+                {t("events.coming")}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {event.attendees.coming.map((a) => (
@@ -316,7 +317,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           {event.attendees.maybe.length > 0 && (
             <div className="mt-1">
               <p className="text-[10px] font-semibold text-amber-500 uppercase mb-0.5">
-                Peut-être
+                {t("events.maybe")}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {event.attendees.maybe.map((a) => (
@@ -347,7 +348,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                 disabled={isPending}
                 className="w-full rounded-full border-2 border-pink-300 bg-pink-50 px-6 py-3 font-bold text-pink-500 shadow transition-all hover:bg-pink-100 active:scale-95 disabled:opacity-50"
               >
-                {isPending ? "..." : "Annuler inscription"}
+                {isPending ? "..." : t("events.cancelReg")}
               </button>
             )}
 
@@ -361,20 +362,20 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                     onClick={() => handleRsvp("coming")}
                     className="flex-1 rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 hover:shadow-md active:scale-95"
                   >
-                    Je viens ✋
+                    {t("events.imComing")}
                   </button>
                   <button
                     onClick={() => handleRsvp("maybe")}
                     className="flex-1 rounded-full border-2 border-amber-300 bg-amber-50 px-6 py-3 font-bold text-amber-600 shadow transition-all hover:bg-amber-100 hover:shadow-md active:scale-95"
                   >
-                    Peut-être 🤔
+                    {t("events.maybeComing")}
                   </button>
                 </div>
               )}
 
             {isFull && !alreadyRegistered && !justSubscribed && (
               <div className="rounded-xl bg-pink-50 px-4 py-3 text-center text-sm font-semibold text-pink-500">
-                Cette sortie est complète
+                {t("events.eventFull")}
               </div>
             )}
 
@@ -385,7 +386,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-                  placeholder="Votre prénom"
+                  placeholder={t("events.firstName")}
                   autoFocus
                   className="flex-1 rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
                 />
@@ -401,9 +402,9 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                     setShowSubscribe(false);
                     setRsvpStatus(null);
                   }}
-                  className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-gray-50 transition-colors"
+                  className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-card-hover transition-colors"
                 >
-                  Annuler
+                  {t("events.cancel")}
                 </button>
               </div>
             )}
@@ -415,7 +416,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
                 rel="noopener noreferrer"
                 className="inline-flex w-full items-center justify-center rounded-full bg-sky-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-sky-400 hover:shadow-md active:scale-95"
               >
-                Ajouter a Google Calendar 📅
+                {t("events.addGCal")}
               </a>
             )}
           </div>
@@ -426,7 +427,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
           href={`/events/${event.id}`}
           className="mt-4 inline-block text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
         >
-          Voir les détails &rarr;
+          {t("events.viewDetails")} &rarr;
         </Link>
       </div>
     </div>
@@ -434,6 +435,8 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
 }
 
 export default function EventsPage() {
+  const t = useT();
+  const { locale } = useI18n();
   const [allEvents, setAllEvents] = useState<CocoEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -441,6 +444,22 @@ export default function EventsPage() {
   const [showPast, setShowPast] = useState(false);
   const [view, setView] = useState<"list" | "map">("list");
   const [hasGroups, setHasGroups] = useState(true);
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    parc: t("cat.parc"),
+    sport: t("cat.sport"),
+    musee: t("cat.musee"),
+    spectacle: t("cat.spectacle"),
+    restaurant: t("cat.restaurant"),
+    atelier: t("cat.atelier"),
+    piscine: t("cat.piscine"),
+    balade: t("cat.balade"),
+    autre: t("cat.autre"),
+  };
+  const CATEGORY_OPTIONS = [
+    { value: "", label: t("cat.all") },
+    ...Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label })),
+  ];
 
   useEffect(() => {
     const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
@@ -483,17 +502,17 @@ export default function EventsPage() {
               href="/"
               className="mb-2 inline-flex items-center text-sm font-semibold text-coral-500 hover:text-coral-400 transition-colors"
             >
-              <span className="mr-1">&larr;</span> Accueil
+              <span className="mr-1">&larr;</span> {t("events.home")}
             </Link>
             <h1 className="text-3xl font-extrabold text-charcoal sm:text-4xl">
-              Les sorties <span className="text-coral-500">🎈</span>
+              {t("events.title")} <span className="text-coral-500">🎈</span>
             </h1>
           </div>
           <Link
             href="/create"
             className="rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-coral-400 hover:shadow-xl active:scale-95"
           >
-            + Nouvelle
+            {t("events.new")}
           </Link>
         </div>
 
@@ -503,14 +522,14 @@ export default function EventsPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Rechercher..."
-            className="flex-1 min-w-[180px] rounded-full border-2 border-coral-200 bg-white px-4 py-2 text-sm text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
+            placeholder={t("events.search")}
+            className="flex-1 min-w-[180px] rounded-full border-2 border-coral-200 bg-card px-4 py-2 text-sm text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
           />
 
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="rounded-full border-2 border-coral-200 bg-white px-4 py-2 text-sm font-semibold text-charcoal cursor-pointer focus:border-coral-500 focus:outline-none"
+            className="rounded-full border-2 border-coral-200 bg-card px-4 py-2 text-sm font-semibold text-charcoal cursor-pointer focus:border-coral-500 focus:outline-none"
           >
             {CATEGORY_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>
@@ -520,18 +539,18 @@ export default function EventsPage() {
           </select>
 
           {hasGeoEvents && (
-            <div className="flex rounded-full border-2 border-coral-200 bg-white overflow-hidden">
+            <div className="flex rounded-full border-2 border-coral-200 bg-card overflow-hidden">
               <button
                 onClick={() => setView("list")}
                 className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "list" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
               >
-                Liste
+                {t("events.list")}
               </button>
               <button
                 onClick={() => setView("map")}
                 className={`px-4 py-2 text-sm font-semibold transition-colors ${view === "map" ? "bg-coral-500 text-white" : "text-charcoal-muted hover:bg-coral-50"}`}
               >
-                Carte
+                {t("events.map")}
               </button>
             </div>
           )}
@@ -539,38 +558,38 @@ export default function EventsPage() {
 
         {loading ? (
           <div className="py-20 text-center text-charcoal-muted">
-            Chargement...
+            {t("events.loading")}
           </div>
         ) : !hasGroups && allEvents.length === 0 ? (
-          <div className="rounded-3xl bg-white p-12 text-center shadow-md">
+          <div className="rounded-3xl bg-card p-12 text-center shadow-md">
             <p className="mb-2 text-5xl">🏫</p>
             <p className="text-lg font-bold text-charcoal">
-              Rejoignez un groupe pour voir les sorties
+              {t("events.joinGroup")}
             </p>
             <p className="mt-1 text-charcoal-muted">
-              Créez ou rejoignez un groupe de parents pour commencer.
+              {t("events.joinGroupDesc")}
             </p>
             <Link
               href="/groups"
               className="mt-6 inline-flex rounded-full bg-coral-500 px-8 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95"
             >
-              Mes groupes 👨‍👩‍👧‍👦
+              {t("events.myGroups")}
             </Link>
           </div>
         ) : allEvents.length === 0 ? (
-          <div className="rounded-3xl bg-white p-12 text-center shadow-md">
+          <div className="rounded-3xl bg-card p-12 text-center shadow-md">
             <p className="mb-2 text-5xl">🦗</p>
             <p className="text-lg font-bold text-charcoal">
-              Aucune sortie pour le moment
+              {t("events.noEvents")}
             </p>
             <p className="mt-1 text-charcoal-muted">
-              Soyez le premier a proposer une sortie !
+              {t("events.noEventsDesc")}
             </p>
             <Link
               href="/create"
               className="mt-6 inline-flex rounded-full bg-coral-500 px-8 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95"
             >
-              Proposer une sortie 🎉
+              {t("events.proposeEvent")}
             </Link>
           </div>
         ) : view === "map" ? (
@@ -579,10 +598,10 @@ export default function EventsPage() {
           <>
             {/* Upcoming events */}
             {upcoming.length === 0 && past.length > 0 && (
-              <div className="mb-6 rounded-3xl bg-white p-8 text-center shadow-md">
+              <div className="mb-6 rounded-3xl bg-card p-8 text-center shadow-md">
                 <p className="text-charcoal-muted">
-                  Aucune sortie à venir
-                  {categoryFilter ? " dans cette catégorie" : ""}.
+                  {t("events.noUpcoming")}
+                  {categoryFilter ? ` ${t("events.inCategory")}` : ""}.
                 </p>
               </div>
             )}
@@ -607,7 +626,7 @@ export default function EventsPage() {
                   >
                     ▶
                   </span>
-                  Sorties passées ({past.length})
+                  {t("events.pastEvents")} ({past.length})
                 </button>
                 {showPast && (
                   <div className="space-y-6">
@@ -628,6 +647,7 @@ export default function EventsPage() {
 // ---------- Map View (lazy-loaded) ----------
 
 function MapView({ events }: { events: CocoEvent[] }) {
+  const t = useT();
   const [MapComponent, setMapComponent] = useState<React.ComponentType<{
     events: CocoEvent[];
   }> | null>(null);
@@ -640,8 +660,8 @@ function MapView({ events }: { events: CocoEvent[] }) {
 
   if (!MapComponent) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-3xl bg-white shadow-md">
-        <p className="text-charcoal-muted">Chargement de la carte...</p>
+      <div className="flex h-96 items-center justify-center rounded-3xl bg-card shadow-md">
+        <p className="text-charcoal-muted">{t("events.loadingMap")}</p>
       </div>
     );
   }

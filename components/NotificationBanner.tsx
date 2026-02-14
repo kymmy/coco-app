@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { savePushSubscription } from "@/lib/actions";
+import { useT } from "@/lib/i18n";
 
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const t = useT();
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
@@ -61,33 +63,33 @@ export default function NotificationBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md animate-[slideUp_0.3s_ease-out] rounded-2xl bg-white p-4 shadow-xl border-2 border-coral-200">
+    <div className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md animate-[slideUp_0.3s_ease-out] rounded-2xl bg-card p-4 shadow-xl border-2 border-coral-200">
       {subscribed ? (
         <p className="text-center text-sm font-bold text-mint-500">
-          Notifications activées !
+          {t("notif.enabled")}
         </p>
       ) : (
         <div className="flex items-start gap-3">
           <span className="text-2xl">🔔</span>
           <div className="flex-1">
             <p className="text-sm font-bold text-charcoal">
-              Recevoir les notifications ?
+              {t("notif.question")}
             </p>
             <p className="text-xs text-charcoal-muted">
-              Soyez averti des nouvelles sorties et inscriptions.
+              {t("notif.description")}
             </p>
             <div className="mt-2 flex gap-2">
               <button
                 onClick={handleEnable}
                 className="rounded-full bg-coral-500 px-4 py-1.5 text-xs font-bold text-white transition-all hover:bg-coral-400 active:scale-95"
               >
-                Activer
+                {t("notif.enable")}
               </button>
               <button
                 onClick={handleDismiss}
-                className="rounded-full border border-charcoal-faint px-4 py-1.5 text-xs font-semibold text-charcoal-muted hover:bg-gray-50 transition-colors"
+                className="rounded-full border border-charcoal-faint px-4 py-1.5 text-xs font-semibold text-charcoal-muted hover:bg-card-hover transition-colors"
               >
-                Plus tard
+                {t("notif.later")}
               </button>
             </div>
           </div>

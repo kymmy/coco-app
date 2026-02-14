@@ -3,6 +3,10 @@
 import { useEffect, useState, useTransition } from "react";
 import { getGroups } from "@/lib/actions";
 import { savePushSubscription } from "@/lib/actions";
+import { useI18n } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
+import type { ThemeMode } from "@/lib/theme";
+import type { Locale } from "@/lib/i18n";
 
 interface Group {
   id: string;
@@ -21,6 +25,8 @@ function getJoinedGroupIds(): string[] {
 }
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+  const { locale, setLocale, t } = useI18n();
   const [username, setUsername] = useState("");
   const [saved, setSaved] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -112,44 +118,44 @@ export default function SettingsPage() {
     <main className="min-h-screen bg-gradient-to-b from-coral-100 to-cream px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-xl">
         <h1 className="mb-2 text-3xl font-extrabold text-charcoal">
-          Reglages
+          {t("settings.title")}
         </h1>
         <p className="mb-8 text-charcoal-muted">
-          Gerez votre profil, vos groupes et vos notifications.
+          {t("settings.subtitle")}
         </p>
 
         {/* ===== Display name ===== */}
-        <section className="mb-6 rounded-3xl bg-white p-6 shadow-md">
+        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
           <h2 className="mb-4 text-lg font-extrabold text-charcoal">
-            Nom d&apos;affichage
+            {t("settings.displayName")}
           </h2>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSaveUsername()}
-            placeholder="Votre prenom ou surnom"
+            placeholder={t("settings.namePlaceholder")}
             className={inputClass}
           />
           <button
             onClick={handleSaveUsername}
             className="mt-3 w-full rounded-full bg-coral-500 px-6 py-3 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
           >
-            {saved ? "Enregistre !" : "Enregistrer"}
+            {saved ? t("settings.saved") : t("settings.save")}
           </button>
         </section>
 
         {/* ===== Joined groups ===== */}
-        <section className="mb-6 rounded-3xl bg-white p-6 shadow-md">
+        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
           <h2 className="mb-4 text-lg font-extrabold text-charcoal">
-            Mes groupes
+            {t("settings.myGroups")}
           </h2>
 
           {loadingGroups ? (
-            <p className="text-sm text-charcoal-muted">Chargement...</p>
+            <p className="text-sm text-charcoal-muted">{t("settings.loading")}</p>
           ) : groups.length === 0 ? (
             <p className="text-sm text-charcoal-muted">
-              Vous n&apos;avez rejoint aucun groupe.
+              {t("settings.noGroups")}
             </p>
           ) : (
             <ul className="space-y-3">
@@ -170,7 +176,7 @@ export default function SettingsPage() {
                     onClick={() => handleLeaveGroup(group.id)}
                     className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
                   >
-                    Quitter
+                    {t("settings.leave")}
                   </button>
                 </li>
               ))}
@@ -179,38 +185,37 @@ export default function SettingsPage() {
         </section>
 
         {/* ===== Notifications ===== */}
-        <section className="mb-6 rounded-3xl bg-white p-6 shadow-md">
+        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
           <h2 className="mb-4 text-lg font-extrabold text-charcoal">
-            Notifications
+            {t("settings.notifications")}
           </h2>
 
           {notifPermission === "unsupported" ? (
             <p className="text-sm text-charcoal-muted">
-              Les notifications ne sont pas supportees par votre navigateur.
+              {t("settings.notifUnsupported")}
             </p>
           ) : (
             <>
               <div className="mb-4 flex items-center gap-3">
-                <span className="text-sm text-charcoal-muted">Statut :</span>
+                <span className="text-sm text-charcoal-muted">{t("settings.status")}</span>
                 {notifPermission === "granted" ? (
                   <span className="rounded-full bg-mint-100 px-3 py-1 text-xs font-bold text-mint-600">
-                    Activees
+                    {t("settings.notifEnabled")}
                   </span>
                 ) : notifPermission === "denied" ? (
                   <span className="rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-pink-500">
-                    Bloquees
+                    {t("settings.notifBlocked")}
                   </span>
                 ) : (
                   <span className="rounded-full bg-coral-50 px-3 py-1 text-xs font-bold text-coral-500">
-                    Non activees
+                    {t("settings.notifOff")}
                   </span>
                 )}
               </div>
 
               {notifPermission === "denied" ? (
                 <p className="text-sm text-charcoal-muted">
-                  Les notifications sont bloquees. Modifiez les permissions dans
-                  les reglages de votre navigateur pour les reactiver.
+                  {t("settings.notifBlockedDesc")}
                 </p>
               ) : (
                 <button
@@ -219,16 +224,63 @@ export default function SettingsPage() {
                   className="w-full rounded-full border-2 border-coral-500 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95 disabled:opacity-50"
                 >
                   {notifBusy
-                    ? "Activation..."
+                    ? t("settings.enabling")
                     : notifSuccess
-                      ? "Notifications activees !"
+                      ? t("settings.notifEnabledMsg")
                       : notifPermission === "granted"
-                        ? "Re-synchroniser les notifications"
-                        : "Activer les notifications"}
+                        ? t("settings.resync")
+                        : t("settings.enableNotif")}
                 </button>
               )}
             </>
           )}
+        </section>
+
+        {/* ===== Appearance ===== */}
+        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
+          <h2 className="mb-4 text-lg font-extrabold text-charcoal">
+            {t("settings.appearance")}
+          </h2>
+
+          {/* Theme toggle */}
+          <div className="mb-4">
+            <p className="mb-2 text-sm font-bold text-charcoal">{t("settings.theme")}</p>
+            <div className="flex rounded-full border-2 border-coral-200 overflow-hidden">
+              {(["light", "dark", "system"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setTheme(mode)}
+                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    theme === mode
+                      ? "bg-coral-500 text-white"
+                      : "text-charcoal-muted hover:bg-coral-50"
+                  }`}
+                >
+                  {mode === "light" ? t("settings.light") : mode === "dark" ? t("settings.dark") : t("settings.auto")}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Language toggle */}
+          <div>
+            <p className="mb-2 text-sm font-bold text-charcoal">{t("settings.language")}</p>
+            <div className="flex rounded-full border-2 border-coral-200 overflow-hidden">
+              {(["fr", "en"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLocale(lang)}
+                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
+                    locale === lang
+                      ? "bg-coral-500 text-white"
+                      : "text-charcoal-muted hover:bg-coral-50"
+                  }`}
+                >
+                  {lang === "fr" ? "Fran\u00e7ais" : "English"}
+                </button>
+              ))}
+            </div>
+          </div>
         </section>
       </div>
     </main>

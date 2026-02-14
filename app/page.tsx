@@ -1,11 +1,15 @@
+"use client";
+
 import Hero from "@/components/Hero";
 import WhySection from "@/components/WhySection";
 import HowItWorks from "@/components/HowItWorks";
 import Community from "@/components/Community";
 import SocialProof from "@/components/SocialProof";
 import FinalCTA from "@/components/FinalCTA";
+import { useT } from "@/lib/i18n";
+import { useTheme } from "@/lib/theme";
 
-function WaveDivider({ color = "#FFFBF5", flip = false }: { color?: string; flip?: boolean }) {
+function WaveDivider({ color = "var(--color-cream)", flip = false }: { color?: string; flip?: boolean }) {
   return (
     <div className={`leading-[0] ${flip ? "rotate-180" : ""}`}>
       <svg
@@ -23,22 +27,25 @@ function WaveDivider({ color = "#FFFBF5", flip = false }: { color?: string; flip
 }
 
 export default function Home() {
+  const t = useT();
+  useTheme();
+
   return (
     <main className="min-h-screen">
       <Hero />
-      <WaveDivider color="#FFFDF7" />
+      <WaveDivider color="var(--color-cream)" />
       <WhySection />
-      <WaveDivider color="#FFFBF5" />
+      <WaveDivider color="var(--color-warm-white)" />
       <HowItWorks />
-      <WaveDivider color="#FFFDF7" flip />
+      <WaveDivider color="var(--color-cream)" flip />
       <Community />
-      <WaveDivider color="#FFFBF5" />
+      <WaveDivider color="var(--color-warm-white)" />
       <SocialProof />
-      <WaveDivider color="#FFFDF7" flip />
+      <WaveDivider color="var(--color-cream)" flip />
       <FinalCTA />
 
       <footer className="bg-cream px-6 py-8 text-center text-sm text-charcoal-faint">
-        <p>Coco &mdash; Copains du coin &copy; {new Date().getFullYear()} &mdash; Fait avec amour par des parents, pour des parents.</p>
+        <p>{t("footer.text", new Date().getFullYear())}</p>
       </footer>
     </main>
   );
