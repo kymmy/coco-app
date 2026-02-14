@@ -2,8 +2,12 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import NotificationBanner from "@/components/NotificationBanner";
-import PwaInstallPrompt from "@/components/PwaInstallPrompt";
+import dynamic from "next/dynamic";
 import { Providers } from "@/lib/providers";
+
+const PwaInstallPrompt = dynamic(
+  () => import("@/components/PwaInstallPrompt")
+);
 import "./globals.css";
 
 const nunito = Nunito({
