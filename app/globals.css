@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary coral red */
+  --color-coral-500: #FF6B6B;
+  --color-coral-400: #FF8787;
+  --color-coral-300: #FFA8A8;
+  --color-coral-200: #FFC9C9;
+  --color-coral-100: #FFE3E3;
+  --color-coral-50: #FFF5F5;
+
+  /* Sky blue accent */
+  --color-sky-500: #4BA8D1;
+  --color-sky-400: #7EC8E3;
+  --color-sky-300: #A8DBF0;
+  --color-sky-200: #CEE9F5;
+  --color-sky-100: #E8F4FA;
+
+  /* Soft pink accent */
+  --color-pink-500: #E8577A;
+  --color-pink-400: #FF8FAB;
+  --color-pink-300: #FFB3C6;
+  --color-pink-200: #FFD6E0;
+  --color-pink-100: #FFECF1;
+
+  /* Mint accent */
+  --color-mint-500: #4DB882;
+  --color-mint-400: #7DDBA3;
+  --color-mint-300: #A8E8C0;
+  --color-mint-200: #CEF2DC;
+  --color-mint-100: #E8F8EF;
+
+  /* Lavender accent */
+  --color-lavender-500: #9B72C9;
+  --color-lavender-400: #C3A6E0;
+  --color-lavender-300: #D6BFE8;
+  --color-lavender-200: #E8D9F2;
+  --color-lavender-100: #F3ECF8;
+
+  /* Backgrounds */
+  --color-cream: #FFFDF7;
+  --color-warm-white: #FFFBF5;
+
+  /* Text */
+  --color-charcoal: #2D2D2D;
+  --color-charcoal-light: #4A4A4A;
+  --color-charcoal-muted: #6B6B6B;
+  --color-charcoal-faint: #9A9A9A;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--color-charcoal);
+  background-color: var(--color-cream);
+}

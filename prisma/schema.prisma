@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id              String    @id @default(uuid())
+  title           String
+  date            DateTime
+  endDate         DateTime?
+  location        String
+  latitude        Float?
+  longitude       Float?
+  eventLink       String
+  description     String
+  image           String?
+  category        String    @default("autre")
+  price           String    @default("Gratuit")
+  maxParticipants Int?
+  organizer       String
+  ageMin          Int?
+  ageMax          Int?
+  seriesId        String?
+  createdAt       DateTime  @default(now())
+  attendees       String    @default("[]") // JSON array of names
+  comments        Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  author    String
+  content   String
+  createdAt DateTime @default(now())
+}
