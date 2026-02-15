@@ -28,7 +28,9 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { locale, setLocale, t } = useI18n();
   const [username, setUsername] = useState("");
+  const [originalUsername, setOriginalUsername] = useState("");
   const [saved, setSaved] = useState(false);
+  const [showNameWarning, setShowNameWarning] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
@@ -40,6 +42,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const stored = localStorage.getItem("coco_username") || "";
     setUsername(stored);
+    setOriginalUsername(stored);
   }, []);
 
   // Load groups from localStorage + server
@@ -65,7 +68,19 @@ export default function SettingsPage() {
   }, []);
 
   function handleSaveUsername() {
-    localStorage.setItem("coco_username", username.trim());
+    const trimmed = username.trim();
+    if (originalUsername && trimmed && trimmed.toLowerCase() !== originalUsername.toLowerCase()) {
+      setShowNameWarning(true);
+      return;
+    }
+    confirmSaveUsername();
+  }
+
+  function confirmSaveUsername() {
+    const trimmed = username.trim();
+    localStorage.setItem("coco_username", trimmed);
+    setOriginalUsername(trimmed);
+    setShowNameWarning(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -143,6 +158,30 @@ export default function SettingsPage() {
           >
             {saved ? t("settings.saved") : t("settings.save")}
           </button>
+          {showNameWarning && (
+            <div className="mt-4 rounded-xl border-2 border-amber-200 bg-amber-50 p-4">
+              <p className="mb-3 text-sm font-semibold text-amber-800">
+                {t("settings.nameWarning")}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={confirmSaveUsername}
+                  className="flex-1 rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-amber-400 active:scale-95"
+                >
+                  {t("settings.nameConfirm")}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNameWarning(false);
+                    setUsername(originalUsername);
+                  }}
+                  className="flex-1 rounded-full border-2 border-amber-300 px-4 py-2 text-sm font-bold text-amber-700 transition-all hover:bg-amber-100 active:scale-95"
+                >
+                  {t("settings.nameCancel")}
+                </button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ===== Joined groups ===== */}
