@@ -1,4 +1,4 @@
-# Coco — Copains du coin 🥥
+# <img src="public/logo.svg" alt="Coco" height="32" /> Coco — Copains du coin
 
 Coco is a free, open-source PWA that helps parents organize outings for their kids with neighbors, school friends, and local communities. No more endless WhatsApp threads — propose an outing, gather your crew, and enjoy.
 
@@ -80,22 +80,6 @@ Open [http://localhost:3000](http://localhost:3000).
 ```bash
 npm run build
 npm start
-```
-
-## Project structure
-
-```
-app/              → Next.js App Router pages
-  about/          → About page
-  api/            → API routes (reminders)
-  create/         → Event creation form
-  events/         → Events list & detail pages
-  groups/         → Groups management & join flow
-  settings/       → User settings
-components/       → Reusable UI components (Navbar, OfflineIndicator, etc.)
-lib/              → Shared logic (actions, i18n, push, theme, toast, Prisma client)
-prisma/           → Schema & migrations
-public/           → Static assets (logo, icons, service worker, manifest)
 ```
 
 ## License
