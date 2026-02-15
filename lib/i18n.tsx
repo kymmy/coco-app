@@ -422,6 +422,31 @@ const fr: Record<string, string> = {
 
   // Landing page
   "hero.ctaViewEvents": "Voir les sorties",
+
+  // About page
+  "about.title": "\u00c0 propos de Coco",
+  "about.subtitle": "L\u2019app qui simplifie les sorties entre copains du quartier.",
+  "about.whatTitle": "C\u2019est quoi Coco ?",
+  "about.whatDesc1": "Coco est une application gratuite qui permet aux parents d\u2019un m\u00eame quartier, d\u2019une m\u00eame \u00e9cole ou d\u2019un m\u00eame groupe d\u2019amis d\u2019organiser des sorties pour leurs enfants en quelques secondes.",
+  "about.whatDesc2": "Fini les interminables boucles WhatsApp pour caler un cr\u00e9neau. Avec Coco, vous proposez une sortie, les copains s\u2019inscrivent, et c\u2019est parti !",
+  "about.valuesTitle": "Nos valeurs",
+  "about.value_simple_title": "Simple",
+  "about.value_simple_desc": "Cr\u00e9er une sortie prend moins d\u2019une minute. Pas de compte \u00e0 cr\u00e9er, pas de formulaire interminable.",
+  "about.value_local_title": "Local",
+  "about.value_local_desc": "Coco est fait pour les communaut\u00e9s de proximit\u00e9 : votre quartier, votre \u00e9cole, vos voisins.",
+  "about.value_private_title": "Priv\u00e9",
+  "about.value_private_desc": "Vos donn\u00e9es restent les v\u00f4tres. Pas de pub, pas de tracking, pas de revente de donn\u00e9es.",
+  "about.value_family_title": "Fait pour les familles",
+  "about.value_family_desc": "Con\u00e7u par des parents, pour des parents. Bienveillant, pratique et efficace.",
+  "about.contactTitle": "Nous contacter",
+  "about.contactDesc": "Une question, une suggestion ou juste envie de dire bonjour ? \u00c9crivez-nous !",
+  "about.hostingTitle": "H\u00e9bergement & donn\u00e9es",
+  "about.hostingDesc": "Coco est h\u00e9berg\u00e9 en France chez OVH (Roubaix). Vos donn\u00e9es ne quittent jamais le territoire fran\u00e7ais et sont soumises au RGPD.",
+  "about.hostingProvider": "OVH \u2014 H\u00e9bergeur fran\u00e7ais",
+  "about.hostingLocation": "Datacenter de Roubaix, France",
+  "about.backHome": "Retour \u00e0 l\u2019accueil",
+  "nav.about": "\u00c0 propos",
+  "footer.about": "\u00c0 propos",
 };
 
 // ---------------------------------------------------------------------------
@@ -824,6 +849,31 @@ const en: Record<string, string> = {
 
   // Landing page
   "hero.ctaViewEvents": "View events",
+
+  // About page
+  "about.title": "About Coco",
+  "about.subtitle": "The app that simplifies outings with your neighborhood crew.",
+  "about.whatTitle": "What is Coco?",
+  "about.whatDesc1": "Coco is a free app that lets parents from the same neighborhood, school, or friend group organize outings for their kids in seconds.",
+  "about.whatDesc2": "No more endless WhatsApp threads to find a date. With Coco, you propose an outing, friends sign up, and you're good to go!",
+  "about.valuesTitle": "Our values",
+  "about.value_simple_title": "Simple",
+  "about.value_simple_desc": "Creating an outing takes less than a minute. No account required, no endless forms.",
+  "about.value_local_title": "Local",
+  "about.value_local_desc": "Coco is built for local communities: your neighborhood, your school, your neighbors.",
+  "about.value_private_title": "Private",
+  "about.value_private_desc": "Your data stays yours. No ads, no tracking, no data reselling.",
+  "about.value_family_title": "Made for families",
+  "about.value_family_desc": "Designed by parents, for parents. Caring, practical, and effective.",
+  "about.contactTitle": "Contact us",
+  "about.contactDesc": "Got a question, a suggestion, or just want to say hi? Drop us a line!",
+  "about.hostingTitle": "Hosting & data",
+  "about.hostingDesc": "Coco is hosted in France by OVH (Roubaix). Your data never leaves French territory and is subject to GDPR regulations.",
+  "about.hostingProvider": "OVH — French hosting provider",
+  "about.hostingLocation": "Roubaix datacenter, France",
+  "about.backHome": "Back to home",
+  "nav.about": "About",
+  "footer.about": "About",
 };
 
 const dictionaries: Record<Locale, Record<string, string>> = { fr, en };

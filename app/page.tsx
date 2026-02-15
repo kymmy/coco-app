@@ -55,6 +55,12 @@ export default function Home() {
           </Link>
         </div>
         <p>{t("footer.text", new Date().getFullYear())}</p>
+        <Link
+          href="/about"
+          className="mt-3 inline-block text-sm font-semibold text-coral-500 transition-colors hover:text-coral-400"
+        >
+          {t("footer.about")}
+        </Link>
       </footer>
     </main>
   );

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="#FF6B6B" />
+
+  <!-- Coconut body -->
+  <ellipse cx="60" cy="68" rx="28" ry="24" fill="#8B5E3C" />
+
+  <!-- Coconut highlight -->
+  <ellipse cx="60" cy="62" rx="24" ry="18" fill="#A0714F" />
+
+  <!-- Coconut inner (white flesh) -->
+  <ellipse cx="60" cy="64" rx="18" ry="14" fill="#FFF5E6" />
+
+  <!-- Coconut milk center -->
+  <ellipse cx="60" cy="66" rx="10" ry="8" fill="white" />
+
+  <!-- Coconut eyes (kawaii style) -->
+  <ellipse cx="53" cy="64" rx="3" ry="3.5" fill="#5D3A1A" />
+  <ellipse cx="67" cy="64" rx="3" ry="3.5" fill="#5D3A1A" />
+
+  <!-- Eye shine -->
+  <circle cx="54.5" cy="62.5" r="1.2" fill="white" />
+  <circle cx="68.5" cy="62.5" r="1.2" fill="white" />
+
+  <!-- Smile -->
+  <path d="M54 71 Q60 76 66 71" stroke="#5D3A1A" stroke-width="2" stroke-linecap="round" fill="none" />
+
+  <!-- Leaf 1 -->
+  <path d="M60 44 Q45 30 38 36 Q42 28 60 44Z" fill="#4CAF50" />
+
+  <!-- Leaf 2 -->
+  <path d="M60 44 Q75 30 82 36 Q78 28 60 44Z" fill="#66BB6A" />
+
+  <!-- Leaf 3 (center) -->
+  <path d="M60 44 Q60 26 56 22 Q64 22 60 44Z" fill="#43A047" />
+</svg>
