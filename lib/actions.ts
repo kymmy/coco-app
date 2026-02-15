@@ -225,7 +225,7 @@ export async function getEvents(groupIds?: string[]) {
   const groupFilter =
     groupIds && groupIds.length > 0
       ? { OR: [{ groupId: { in: groupIds } }, { groupId: null }] }
-      : {};
+      : { groupId: null };
 
   const events = await prisma.event.findMany({
     where: { ...groupFilter, deletedAt: null },
