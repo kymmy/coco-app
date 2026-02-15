@@ -6,7 +6,6 @@ import WhySection from "@/components/WhySection";
 import HowItWorks from "@/components/HowItWorks";
 import Community from "@/components/Community";
 import SocialProof from "@/components/SocialProof";
-import FinalCTA from "@/components/FinalCTA";
 import { useT } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
@@ -42,9 +41,6 @@ export default function Home() {
       <Community />
       <WaveDivider color="var(--color-warm-white)" />
       <SocialProof />
-      <WaveDivider color="var(--color-cream)" flip />
-      <FinalCTA />
-
       <footer className="bg-cream px-6 py-8 text-center text-sm text-charcoal-faint">
         <p>{t("footer.text", new Date().getFullYear())}</p>
         <Link

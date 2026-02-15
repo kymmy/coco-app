@@ -93,17 +93,6 @@ const fr: Record<string, string> = {
   "social.stat3Label": "gratuit au lancement",
   "social.stat3Desc": "Les premiers inscrits profiteront de Coco gratuitement.",
 
-  // Final CTA
-  "cta.title1": "Simplifiez l\u2019organisation.",
-  "cta.title2": "Profitez du moment avec vos enfants.",
-  "cta.subtitle": "Laissez votre email pour \u00eatre pr\u00e9venu d\u00e8s le lancement. Vous recevrez aussi une invitation agenda pour ne rien manquer. \ud83d\udcec",
-  "cta.thankTitle": "Merci ! Vous \u00eates sur la liste.",
-  "cta.thankDesc": "On vous pr\u00e9vient d\u00e8s que Coco est pr\u00eat. \u00c0 tr\u00e8s vite !",
-  "cta.errorEmail": "Veuillez entrer une adresse email valide.",
-  "cta.errorDuplicate": "Cette adresse est d\u00e9j\u00e0 inscrite !",
-  "cta.submit": "Je m\u2019inscris \ud83d\ude80",
-  "cta.nospam": "Pas de spam, promis. Juste une notification quand c\u2019est pr\u00eat. \ud83e\udd1e",
-
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
 
@@ -521,17 +510,6 @@ const en: Record<string, string> = {
   "social.stat3Value": "100%",
   "social.stat3Label": "free at launch",
   "social.stat3Desc": "Early adopters will enjoy Coco for free.",
-
-  // Final CTA
-  "cta.title1": "Simplify the organization.",
-  "cta.title2": "Enjoy the moment with your children.",
-  "cta.subtitle": "Leave your email to be notified at launch. You\u2019ll also get a calendar invite so you don\u2019t miss anything. \ud83d\udcec",
-  "cta.thankTitle": "Thank you! You\u2019re on the list.",
-  "cta.thankDesc": "We\u2019ll notify you as soon as Coco is ready. See you soon!",
-  "cta.errorEmail": "Please enter a valid email address.",
-  "cta.errorDuplicate": "This email is already registered!",
-  "cta.submit": "Sign me up \ud83d\ude80",
-  "cta.nospam": "No spam, promise. Just a notification when it\u2019s ready. \ud83e\udd1e",
 
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Made with love by parents, for parents.",
