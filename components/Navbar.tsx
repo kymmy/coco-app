@@ -24,16 +24,16 @@ export default function Navbar() {
 
   return (
     <nav className={`sticky top-0 z-50 border-b border-coral-100 bg-cream/80 backdrop-blur-md transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2 text-xl font-extrabold text-charcoal">
           <img src="/logo.svg" alt="Coco" className="h-8 w-8" />
-          Coco
+          <span className="hidden sm:inline">Coco</span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <Link
             href="/groups"
-            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
+            className={`rounded-full px-2.5 py-1.5 text-xs font-bold transition-all sm:px-4 sm:py-2 sm:text-sm ${
               pathname.startsWith("/groups")
                 ? "bg-coral-500 text-white"
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
@@ -43,7 +43,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/events"
-            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
+            className={`rounded-full px-2.5 py-1.5 text-xs font-bold transition-all sm:px-4 sm:py-2 sm:text-sm ${
               pathname.startsWith("/events")
                 ? "bg-coral-500 text-white"
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
@@ -53,30 +53,30 @@ export default function Navbar() {
           </Link>
           <button
             onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
-            className="rounded-full px-2 py-1.5 text-xs font-bold text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal"
+            className="rounded-full px-1.5 py-1.5 text-xs font-bold text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal sm:px-2"
             aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
           >
             {locale === "fr" ? "EN" : "FR"}
           </button>
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="rounded-full p-2 text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal"
+            className="rounded-full p-1.5 text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal sm:p-2"
             aria-label={resolvedTheme === "dark" ? "Light mode" : "Dark mode"}
           >
             {resolvedTheme === "dark" ? (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 sm:h-5 sm:w-5">
                 <circle cx="12" cy="12" r="4" />
                 <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 sm:h-5 sm:w-5">
                 <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
               </svg>
             )}
           </button>
           <Link
             href="/settings"
-            className={`rounded-full p-2 transition-all ${
+            className={`rounded-full p-1.5 transition-all sm:p-2 ${
               pathname === "/settings"
                 ? "bg-coral-500 text-white"
                 : "text-charcoal-muted hover:bg-coral-100 hover:text-charcoal"
@@ -92,7 +92,7 @@ export default function Navbar() {
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-5 w-5"
+              className="h-4 w-4 sm:h-5 sm:w-5"
             >
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
               <circle cx="12" cy="12" r="3" />
@@ -100,7 +100,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/create"
-            className={`rounded-full px-3 py-2 text-sm font-bold transition-all sm:px-4 ${
+            className={`rounded-full px-2.5 py-1.5 text-xs font-bold transition-all sm:px-4 sm:py-2 sm:text-sm ${
               pathname === "/create"
                 ? "bg-coral-500 text-white"
                 : "border-2 border-coral-500 text-coral-500 hover:bg-coral-50"
