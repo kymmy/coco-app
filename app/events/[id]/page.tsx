@@ -836,7 +836,15 @@ function CommentSection({
                   )}
                 </div>
               </div>
-              <p className="text-sm text-charcoal-light">{c.content}</p>
+              <p className="text-sm text-charcoal-light">
+                {c.content.split(/(@\w+)/g).map((part, i) =>
+                  /^@\w+$/.test(part) ? (
+                    <span key={i} className="font-bold text-coral-500">{part}</span>
+                  ) : (
+                    part
+                  )
+                )}
+              </p>
             </div>
           ))}
         </div>

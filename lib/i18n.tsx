@@ -383,6 +383,9 @@ const fr: Record<string, string> = {
   "comments.delete": "Supprimer",
   "comments.deleted": "Comment supprim\u00e9",
 
+  // Mentions
+  "comments.mentioned": "{0} vous a mentionn\u00e9(e) : \"{1}\"",
+
   // Checklist quantities
   "checklist.quantity": "Quantit\u00e9",
 
@@ -790,6 +793,9 @@ const en: Record<string, string> = {
   // Comment deletion
   "comments.delete": "Delete",
   "comments.deleted": "Comment deleted",
+
+  // Mentions
+  "comments.mentioned": "{0} mentioned you: \"{1}\"",
 
   // Checklist quantities
   "checklist.quantity": "Quantity",

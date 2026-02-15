@@ -481,9 +481,38 @@ export async function addComment(
   });
   if (event) {
     const names = event.rsvps.map((r) => r.name);
-    const toNotify = [...new Set([event.organizer, ...names])].filter(
+    const allParticipants = [...new Set([event.organizer, ...names])].filter(
       (n) => n !== cleanAuthor
     );
+
+    // Parse @mentions from comment content
+    const mentionRegex = /@(\w+)/g;
+    const mentionedRaw: string[] = [];
+    let match;
+    while ((match = mentionRegex.exec(cleanContent)) !== null) {
+      mentionedRaw.push(match[1]);
+    }
+
+    // Match mentioned names against participants (case-insensitive)
+    const mentionedUsers = new Set<string>();
+    for (const raw of mentionedRaw) {
+      const found = allParticipants.find(
+        (p) => p.toLowerCase() === raw.toLowerCase()
+      );
+      if (found) mentionedUsers.add(found);
+    }
+
+    // Send mention-specific notifications
+    for (const user of mentionedUsers) {
+      sendPushToUser(user, {
+        title: `${cleanAuthor} vous a mentionné(e)`,
+        body: cleanContent.slice(0, 100),
+        url: `/events/${eventId}`,
+      }).catch(() => {});
+    }
+
+    // Send general notification to remaining participants (skip mentioned users)
+    const toNotify = allParticipants.filter((n) => !mentionedUsers.has(n));
     for (const user of toNotify) {
       sendPushToUser(user, {
         title: `Nouveau message de ${cleanAuthor}`,
