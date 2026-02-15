@@ -80,19 +80,6 @@ const fr: Record<string, string> = {
   "community.bullet4Desc": "Con\u00e7u par des parents, pour des parents. Simple, bienveillant, efficace.",
   "community.conclusion": "Parce que les meilleurs souvenirs d\u2019enfance se cr\u00e9ent ensemble, en toute simplicit\u00e9. \ud83c\udf08",
 
-  // Social proof
-  "social.title": "Ils n\u2019attendent que \u00e7a \ud83d\ude80",
-  "social.subtitle": "Coco est en cours de cr\u00e9ation. Voici o\u00f9 nous en sommes.",
-  "social.stat1Value": "150+",
-  "social.stat1Label": "familles int\u00e9ress\u00e9es",
-  "social.stat1Desc": "Des parents comme vous, pr\u00eats \u00e0 simplifier les sorties.",
-  "social.stat2Value": "12",
-  "social.stat2Label": "quartiers en attente",
-  "social.stat2Desc": "Partout en France, des voisins pr\u00eats \u00e0 se retrouver.",
-  "social.stat3Value": "100%",
-  "social.stat3Label": "gratuit au lancement",
-  "social.stat3Desc": "Les premiers inscrits profiteront de Coco gratuitement.",
-
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
 
@@ -497,19 +484,6 @@ const en: Record<string, string> = {
   "community.bullet4Title": "Made for families",
   "community.bullet4Desc": "Designed by parents, for parents. Simple, caring, effective.",
   "community.conclusion": "Because the best childhood memories are created together, simply. \ud83c\udf08",
-
-  // Social proof
-  "social.title": "They can\u2019t wait \ud83d\ude80",
-  "social.subtitle": "Coco is being built. Here\u2019s where we stand.",
-  "social.stat1Value": "150+",
-  "social.stat1Label": "interested families",
-  "social.stat1Desc": "Parents like you, ready to simplify outings.",
-  "social.stat2Value": "12",
-  "social.stat2Label": "neighborhoods waiting",
-  "social.stat2Desc": "All over France, neighbors ready to get together.",
-  "social.stat3Value": "100%",
-  "social.stat3Label": "free at launch",
-  "social.stat3Desc": "Early adopters will enjoy Coco for free.",
 
   // Footer
   "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Made with love by parents, for parents.",

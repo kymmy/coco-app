@@ -5,7 +5,6 @@ import Hero from "@/components/Hero";
 import WhySection from "@/components/WhySection";
 import HowItWorks from "@/components/HowItWorks";
 import Community from "@/components/Community";
-import SocialProof from "@/components/SocialProof";
 import { useT } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
@@ -39,8 +38,6 @@ export default function Home() {
       <HowItWorks />
       <WaveDivider color="var(--color-cream)" flip />
       <Community />
-      <WaveDivider color="var(--color-warm-white)" />
-      <SocialProof />
       <footer className="bg-cream px-6 py-8 text-center text-sm text-charcoal-faint">
         <p>{t("footer.text", new Date().getFullYear())}</p>
         <Link
