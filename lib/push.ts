@@ -1,11 +1,18 @@
 import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
 
-webpush.setVapidDetails(
-  "mailto:contact@coco-app.fr",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+let vapidConfigured = false;
+
+function ensureVapidConfigured() {
+  if (!vapidConfigured) {
+    webpush.setVapidDetails(
+      "mailto:contact@coco-app.fr",
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+      process.env.VAPID_PRIVATE_KEY!
+    );
+    vapidConfigured = true;
+  }
+}
 
 interface PushPayload {
   title: string;
@@ -14,6 +21,7 @@ interface PushPayload {
 }
 
 async function sendPush(endpoint: string, p256dh: string, auth: string, payload: PushPayload) {
+  ensureVapidConfigured();
   try {
     await webpush.sendNotification(
       {
