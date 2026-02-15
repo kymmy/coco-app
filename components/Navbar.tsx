@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useT } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const t = useT();
+  const { locale, setLocale, t } = useI18n();
   const { resolvedTheme, setTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
 
@@ -51,6 +51,13 @@ export default function Navbar() {
           >
             {t("nav.events")}
           </Link>
+          <button
+            onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
+            className="rounded-full px-2 py-1.5 text-xs font-bold text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal"
+            aria-label={locale === "fr" ? "Switch to English" : "Passer en français"}
+          >
+            {locale === "fr" ? "EN" : "FR"}
+          </button>
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="rounded-full p-2 text-charcoal-muted transition-all hover:bg-coral-100 hover:text-charcoal"

@@ -4,9 +4,6 @@ import { useEffect, useState, useTransition } from "react";
 import { getGroups } from "@/lib/actions";
 import { savePushSubscription } from "@/lib/actions";
 import { useI18n } from "@/lib/i18n";
-import { useTheme } from "@/lib/theme";
-import type { ThemeMode } from "@/lib/theme";
-import type { Locale } from "@/lib/i18n";
 
 interface Group {
   id: string;
@@ -25,8 +22,7 @@ function getJoinedGroupIds(): string[] {
 }
 
 export default function SettingsPage() {
-  const { theme, setTheme } = useTheme();
-  const { locale, setLocale, t } = useI18n();
+  const { t } = useI18n();
   const [username, setUsername] = useState("");
   const [originalUsername, setOriginalUsername] = useState("");
   const [saved, setSaved] = useState(false);
@@ -281,53 +277,6 @@ export default function SettingsPage() {
               )}
             </>
           )}
-        </section>
-
-        {/* ===== Appearance ===== */}
-        <section className="mb-6 rounded-3xl bg-card p-6 shadow-md">
-          <h2 className="mb-4 text-lg font-extrabold text-charcoal">
-            {t("settings.appearance")}
-          </h2>
-
-          {/* Theme toggle */}
-          <div className="mb-4">
-            <p className="mb-2 text-sm font-bold text-charcoal">{t("settings.theme")}</p>
-            <div className="flex rounded-full border-2 border-coral-200 overflow-hidden">
-              {(["light", "dark", "system"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setTheme(mode)}
-                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    theme === mode
-                      ? "bg-coral-500 text-white"
-                      : "text-charcoal-muted hover:bg-coral-50"
-                  }`}
-                >
-                  {mode === "light" ? t("settings.light") : mode === "dark" ? t("settings.dark") : t("settings.auto")}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Language toggle */}
-          <div>
-            <p className="mb-2 text-sm font-bold text-charcoal">{t("settings.language")}</p>
-            <div className="flex rounded-full border-2 border-coral-200 overflow-hidden">
-              {(["fr", "en"] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLocale(lang)}
-                  className={`flex-1 px-4 py-2.5 text-sm font-semibold transition-colors ${
-                    locale === lang
-                      ? "bg-coral-500 text-white"
-                      : "text-charcoal-muted hover:bg-coral-50"
-                  }`}
-                >
-                  {lang === "fr" ? "Fran\u00e7ais" : "English"}
-                </button>
-              ))}
-            </div>
-          </div>
         </section>
 
         {/* ===== Export data ===== */}
