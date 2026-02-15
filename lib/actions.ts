@@ -286,7 +286,7 @@ export async function updateEvent(id: string, formData: FormData) {
   const existingEvent = await prisma.event.findUnique({ where: { id } });
   const finalImage = image || existingEvent?.image || null;
 
-  await prisma.event.update({
+  const updatedEvent = await prisma.event.update({
     where: { id },
     data: {
       title: sanitize(title),
@@ -306,7 +306,23 @@ export async function updateEvent(id: string, formData: FormData) {
       ageMax: ageMax ? parseInt(ageMax, 10) : null,
       groupId: groupId || null,
     },
+    include: { rsvps: true },
   });
+
+  // Notify attendees that the event was updated
+  const attendeeNames = updatedEvent.rsvps
+    .filter((r) => r.status === "coming" || r.status === "maybe")
+    .map((r) => r.name);
+  const toNotify = [...new Set(attendeeNames)].filter(
+    (n) => n.toLowerCase() !== sanitize(organizer).toLowerCase()
+  );
+  for (const user of toNotify) {
+    sendPushToUser(user, {
+      title: `Sortie modifiée : ${updatedEvent.title}`,
+      body: `📍 ${updatedEvent.location}`,
+      url: `/events/${id}`,
+    }).catch(() => {});
+  }
 
   return { success: true };
 }
