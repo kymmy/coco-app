@@ -9,7 +9,8 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-coral-100 to-cream px-6 pt-20 pb-24 sm:px-12 lg:px-24">
       <div className="mx-auto max-w-3xl text-center">
-        <div className="mb-6 inline-block rounded-full bg-coral-200 px-4 py-1.5 text-sm font-bold text-coral-500">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-coral-200 px-4 py-1.5 text-sm font-bold text-coral-500">
+          <img src="/logo.svg" alt="" className="h-5 w-5" />
           {t("hero.badge")}
         </div>
 

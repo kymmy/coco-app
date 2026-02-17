@@ -33,7 +33,7 @@ const fr: Record<string, string> = {
   "nav.create": "+ Creer",
 
   // Hero
-  "hero.badge": "Copains du coin \ud83e\udd65",
+  "hero.badge": "Copains du coin",
   "hero.title": "Organisez les sorties entre copains du quartier ",
   "hero.titleAccent": "en 1 minute.",
   "hero.subtitle": "Fini les 42 messages WhatsApp pour trouver une date. Proposez, rassemblez, profitez. \ud83c\udf89",
@@ -444,7 +444,7 @@ const en: Record<string, string> = {
   "nav.create": "+ Create",
 
   // Hero
-  "hero.badge": "Neighborhood buddies \ud83e\udd65",
+  "hero.badge": "Neighborhood buddies",
   "hero.title": "Organize outings with your neighborhood crew ",
   "hero.titleAccent": "in 1 minute.",
   "hero.subtitle": "No more 42 WhatsApp messages to find a date. Propose, gather, enjoy. \ud83c\udf89",
