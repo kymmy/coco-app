@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const stored = localStorage.getItem("coco_theme") as ThemeMode | null;
+    const stored = localStorage.getItem("tribu_theme") as ThemeMode | null;
     if (stored === "light" || stored === "dark" || stored === "system") {
       setThemeState(stored);
     }
@@ -54,7 +54,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   function setTheme(t: ThemeMode) {
     setThemeState(t);
-    localStorage.setItem("coco_theme", t);
+    localStorage.setItem("tribu_theme", t);
   }
 
   return (

@@ -6,7 +6,7 @@ let vapidConfigured = false;
 function ensureVapidConfigured() {
   if (!vapidConfigured) {
     webpush.setVapidDetails(
-      "mailto:contact@coco-app.fr",
+      "mailto:contact@tribu-app.fr",
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
       process.env.VAPID_PRIVATE_KEY!
     );

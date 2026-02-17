@@ -1,6 +1,6 @@
 {
-  "name": "Coco — Copains du coin",
-  "short_name": "Coco",
+  "name": "Tribu — Ta tribu locale",
+  "short_name": "Tribu",
   "description": "Organisez les sorties entre parents de l'école",
   "start_url": "/events",
   "display": "standalone",

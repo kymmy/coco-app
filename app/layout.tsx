@@ -19,20 +19,20 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Coco — Copains du coin | Organisez les sorties entre copains du quartier",
+  title: "Tribu — Ta tribu locale | Organisez les sorties entre copains du quartier",
   description:
     "Fini les 42 messages WhatsApp pour trouver une date. Organisez les sorties entre copains du quartier en 1 minute.",
   openGraph: {
-    title: "Coco — Copains du coin",
+    title: "Tribu — Ta tribu locale",
     description:
       "Organisez les sorties entre copains du quartier en 1 minute. Proposez, rassemblez, profitez.",
-    siteName: "Coco",
+    siteName: "Tribu",
     locale: "fr_FR",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Coco — Copains du coin",
+    title: "Tribu — Ta tribu locale",
     description:
       "Organisez les sorties entre copains du quartier en 1 minute.",
   },
@@ -53,7 +53,7 @@ export default function RootLayout({
         {/* Prevent dark mode flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("coco_theme");var d=window.matchMedia("(prefers-color-scheme:dark)").matches;if(t==="dark"||(t!=="light"&&d))document.documentElement.classList.add("dark");var l=localStorage.getItem("coco_locale");if(l==="en")document.documentElement.lang="en"}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("tribu_theme");var d=window.matchMedia("(prefers-color-scheme:dark)").matches;if(t==="dark"||(t!=="light"&&d))document.documentElement.classList.add("dark");var l=localStorage.getItem("tribu_locale");if(l==="en")document.documentElement.lang="en"}catch(e){}})()`,
           }}
         />
       </head>

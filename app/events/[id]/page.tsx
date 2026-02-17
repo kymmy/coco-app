@@ -173,7 +173,7 @@ function downloadICS(event: CocoEvent) {
   const icsContent = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Coco//Coco Events//FR",
+    "PRODID:-//Tribu//Tribu Events//FR",
     "BEGIN:VEVENT",
     `DTSTART:${fmt(start)}`,
     `DTEND:${fmt(end)}`,
@@ -1188,7 +1188,7 @@ export default function EventDetailPage() {
 
   async function handleShare() {
     const url = window.location.href;
-    const text = event ? `${event.title} — ${event.location}` : "Sortie Coco";
+    const text = event ? `${event.title} — ${event.location}` : "Sortie Tribu";
 
     if (navigator.share) {
       try {

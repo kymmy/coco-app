@@ -29,8 +29,8 @@ export default function Navbar() {
     <nav className={`sticky top-0 z-50 border-b border-coral-100 bg-cream/80 backdrop-blur-md transition-shadow duration-200 ${scrolled ? "shadow-md" : ""}`}>
       <div className="mx-auto flex max-w-5xl items-center justify-between px-3 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2 text-xl font-extrabold text-charcoal">
-          <img src="/logo.svg" alt="Coco" className="h-8 w-8" />
-          <span className="hidden sm:inline">Coco</span>
+          <img src="/logo.svg" alt="Tribu" className="h-8 w-8" />
+          <span className="hidden sm:inline">Tribu</span>
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-3">

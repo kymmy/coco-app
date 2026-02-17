@@ -1,6 +1,6 @@
-# <img src="public/logo.svg" alt="Coco" height="32" /> Coco — Copains du coin
+# <img src="public/logo.svg" alt="Tribu" height="32" /> Tribu — Ta tribu locale
 
-Coco is a free, open-source PWA that helps parents organize outings for their kids with neighbors, school friends, and local communities. No more endless WhatsApp threads — propose an outing, gather your crew, and enjoy.
+Tribu is a free, open-source PWA that helps parents organize outings for their kids with neighbors, school friends, and local communities. No more endless WhatsApp threads — propose an outing, gather your crew, and enjoy.
 
 ## Features
 
@@ -40,8 +40,8 @@ Coco is a free, open-source PWA that helps parents organize outings for their ki
 ### Installation
 
 ```bash
-git clone https://github.com/your-org/coco.git
-cd coco
+git clone https://github.com/your-org/tribu.git
+cd tribu
 npm install
 ```
 

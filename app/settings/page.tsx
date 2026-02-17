@@ -17,7 +17,7 @@ const inputClass =
 
 function getJoinedGroupIds(): string[] {
   if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem("coco_groups");
+  const raw = localStorage.getItem("tribu_groups");
   return raw ? (JSON.parse(raw) as string[]) : [];
 }
 
@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   // Load username from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("coco_username") || "";
+    const stored = localStorage.getItem("tribu_username") || "";
     setUsername(stored);
     setOriginalUsername(stored);
   }, []);
@@ -74,7 +74,7 @@ export default function SettingsPage() {
 
   function confirmSaveUsername() {
     const trimmed = username.trim();
-    localStorage.setItem("coco_username", trimmed);
+    localStorage.setItem("tribu_username", trimmed);
     setOriginalUsername(trimmed);
     setShowNameWarning(false);
     setSaved(true);
@@ -83,7 +83,7 @@ export default function SettingsPage() {
 
   function handleLeaveGroup(groupId: string) {
     const ids = getJoinedGroupIds().filter((id) => id !== groupId);
-    localStorage.setItem("coco_groups", JSON.stringify(ids));
+    localStorage.setItem("tribu_groups", JSON.stringify(ids));
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   }
 
@@ -105,7 +105,7 @@ export default function SettingsPage() {
       });
 
       const json = subscription.toJSON();
-      const storedUsername = localStorage.getItem("coco_username") || "";
+      const storedUsername = localStorage.getItem("tribu_username") || "";
       const groupIds = getJoinedGroupIds();
 
       await savePushSubscription(
@@ -290,17 +290,17 @@ export default function SettingsPage() {
           <button
             onClick={() => {
               const data = {
-                username: localStorage.getItem("coco_username") || "",
+                username: localStorage.getItem("tribu_username") || "",
                 groups: getJoinedGroupIds(),
-                theme: localStorage.getItem("coco_theme") || "system",
-                locale: localStorage.getItem("coco_locale") || "fr",
+                theme: localStorage.getItem("tribu_theme") || "system",
+                locale: localStorage.getItem("tribu_locale") || "fr",
                 exportedAt: new Date().toISOString(),
               };
               const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
               a.href = url;
-              a.download = `coco-data-${new Date().toISOString().slice(0, 10)}.json`;
+              a.download = `tribu-data-${new Date().toISOString().slice(0, 10)}.json`;
               a.click();
               URL.revokeObjectURL(url);
             }}

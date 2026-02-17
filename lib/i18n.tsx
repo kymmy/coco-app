@@ -33,7 +33,7 @@ const fr: Record<string, string> = {
   "nav.create": "+ Creer",
 
   // Hero
-  "hero.badge": "Copains du coin",
+  "hero.badge": "Ta tribu locale",
   "hero.title": "Organisez les sorties entre copains du quartier ",
   "hero.titleAccent": "en 1 minute.",
   "hero.subtitle": "Fini les 42 messages WhatsApp pour trouver une date. Proposez, rassemblez, profitez. \ud83c\udf89",
@@ -51,7 +51,7 @@ const fr: Record<string, string> = {
   "why.pain3Desc": "Difficile d\u2019organiser quand on ne conna\u00eet pas encore les voisins.",
   "why.pain4Title": "Toujours les m\u00eames qui organisent",
   "why.pain4Desc": "La charge mentale retombe toujours sur 2-3 parents motiv\u00e9s. Ce n\u2019est pas tenable.",
-  "why.cocoIs": "Coco, c\u2019est {0}, {1}, {2} et {3}. Juste ce qu\u2019il faut pour se retrouver.",
+  "why.cocoIs": "Tribu, c\u2019est {0}, {1}, {2} et {3}. Juste ce qu\u2019il faut pour se retrouver.",
   "why.simple": "simple",
   "why.local": "local",
   "why.private": "priv\u00e9",
@@ -69,7 +69,7 @@ const fr: Record<string, string> = {
 
   // Community
   "community.title": "Une communaut\u00e9 de confiance \ud83e\udd1d",
-  "community.subtitle": "Coco cr\u00e9e un espace s\u00fbr et chaleureux pour votre communaut\u00e9 de proximit\u00e9.",
+  "community.subtitle": "Tribu cr\u00e9e un espace s\u00fbr et chaleureux pour votre communaut\u00e9 de proximit\u00e9.",
   "community.bullet1Title": "Priv\u00e9 par d\u00e9faut",
   "community.bullet1Desc": "Seuls les membres du groupe peuvent voir et rejoindre les sorties.",
   "community.bullet2Title": "100% local",
@@ -81,7 +81,7 @@ const fr: Record<string, string> = {
   "community.conclusion": "Parce que les meilleurs souvenirs d\u2019enfance se cr\u00e9ent ensemble, en toute simplicit\u00e9. \ud83c\udf08",
 
   // Footer
-  "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
+  "footer.text": "Tribu \u2014 Ta tribu locale \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
 
   // 404
   "notFound.title": "Page introuvable",
@@ -94,7 +94,7 @@ const fr: Record<string, string> = {
   "events.inDays": "Dans {0} jours",
 
   // PWA install
-  "pwa.install": "Ajouter Coco \u00e0 l\u2019\u00e9cran d\u2019accueil",
+  "pwa.install": "Ajouter Tribu \u00e0 l\u2019\u00e9cran d\u2019accueil",
   "pwa.installButton": "Installer",
   "pwa.dismiss": "Plus tard",
   "pwa.offline": "Vous \u00eates hors connexion",
@@ -406,16 +406,16 @@ const fr: Record<string, string> = {
   "hero.ctaViewEvents": "Voir les sorties",
 
   // About page
-  "about.title": "\u00c0 propos de Coco",
+  "about.title": "\u00c0 propos de Tribu",
   "about.subtitle": "L\u2019app qui simplifie les sorties entre copains du quartier.",
-  "about.whatTitle": "C\u2019est quoi Coco ?",
-  "about.whatDesc1": "Coco est une application gratuite qui permet aux parents d\u2019un m\u00eame quartier, d\u2019une m\u00eame \u00e9cole ou d\u2019un m\u00eame groupe d\u2019amis d\u2019organiser des sorties pour leurs enfants en quelques secondes.",
-  "about.whatDesc2": "Fini les interminables boucles WhatsApp pour caler un cr\u00e9neau. Avec Coco, vous proposez une sortie, les copains s\u2019inscrivent, et c\u2019est parti !",
+  "about.whatTitle": "C\u2019est quoi Tribu ?",
+  "about.whatDesc1": "Tribu est une application gratuite qui permet aux parents d\u2019un m\u00eame quartier, d\u2019une m\u00eame \u00e9cole ou d\u2019un m\u00eame groupe d\u2019amis d\u2019organiser des sorties pour leurs enfants en quelques secondes.",
+  "about.whatDesc2": "Fini les interminables boucles WhatsApp pour caler un cr\u00e9neau. Avec Tribu, vous proposez une sortie, les copains s\u2019inscrivent, et c\u2019est parti !",
   "about.valuesTitle": "Nos valeurs",
   "about.value_simple_title": "Simple",
   "about.value_simple_desc": "Cr\u00e9er une sortie prend moins d\u2019une minute. Pas de compte \u00e0 cr\u00e9er, pas de formulaire interminable.",
   "about.value_local_title": "Local",
-  "about.value_local_desc": "Coco est fait pour les communaut\u00e9s de proximit\u00e9 : votre quartier, votre \u00e9cole, vos voisins.",
+  "about.value_local_desc": "Tribu est fait pour les communaut\u00e9s de proximit\u00e9 : votre quartier, votre \u00e9cole, vos voisins.",
   "about.value_private_title": "Priv\u00e9",
   "about.value_private_desc": "Vos donn\u00e9es restent les v\u00f4tres. Pas de pub, pas de tracking, pas de revente de donn\u00e9es.",
   "about.value_family_title": "Fait pour les familles",
@@ -423,11 +423,11 @@ const fr: Record<string, string> = {
   "about.contactTitle": "Nous contacter",
   "about.contactDesc": "Une question, une suggestion ou juste envie de dire bonjour ? \u00c9crivez-nous !",
   "about.hostingTitle": "H\u00e9bergement & donn\u00e9es",
-  "about.hostingDesc": "Coco est h\u00e9berg\u00e9 en France chez Vercel (Paris). Vos donn\u00e9es ne quittent jamais le territoire fran\u00e7ais et sont soumises au RGPD.",
+  "about.hostingDesc": "Tribu est h\u00e9berg\u00e9 en France chez Vercel (Paris). Vos donn\u00e9es ne quittent jamais le territoire fran\u00e7ais et sont soumises au RGPD.",
   "about.hostingProvider": "Vercel \u2014 Paris, France",
   "about.hostingLocation": "R\u00e9gion eu-west-3 (Paris)",
   "about.sourceTitle": "Code source",
-  "about.sourceDesc": "Coco est un projet open source sous licence Apache 2.0. Le code est public et accessible \u00e0 tous.",
+  "about.sourceDesc": "Tribu est un projet open source sous licence Apache 2.0. Le code est public et accessible \u00e0 tous.",
   "about.backHome": "Retour \u00e0 l\u2019accueil",
   "nav.about": "\u00c0 propos",
   "footer.about": "\u00c0 propos",
@@ -444,7 +444,7 @@ const en: Record<string, string> = {
   "nav.create": "+ Create",
 
   // Hero
-  "hero.badge": "Neighborhood buddies",
+  "hero.badge": "Your local tribe",
   "hero.title": "Organize outings with your neighborhood crew ",
   "hero.titleAccent": "in 1 minute.",
   "hero.subtitle": "No more 42 WhatsApp messages to find a date. Propose, gather, enjoy. \ud83c\udf89",
@@ -462,7 +462,7 @@ const en: Record<string, string> = {
   "why.pain3Desc": "Hard to organize when you don\u2019t know your neighbors yet.",
   "why.pain4Title": "Always the same ones organizing",
   "why.pain4Desc": "The mental load always falls on 2\u20133 motivated parents. It\u2019s not sustainable.",
-  "why.cocoIs": "Coco is {0}, {1}, {2} and {3}. Just what you need to get together.",
+  "why.cocoIs": "Tribu is {0}, {1}, {2} and {3}. Just what you need to get together.",
   "why.simple": "simple",
   "why.local": "local",
   "why.private": "private",
@@ -480,7 +480,7 @@ const en: Record<string, string> = {
 
   // Community
   "community.title": "A trusted community \ud83e\udd1d",
-  "community.subtitle": "Coco creates a safe and warm space for your local community.",
+  "community.subtitle": "Tribu creates a safe and warm space for your local community.",
   "community.bullet1Title": "Private by default",
   "community.bullet1Desc": "Only group members can see and join outings.",
   "community.bullet2Title": "100% local",
@@ -492,7 +492,7 @@ const en: Record<string, string> = {
   "community.conclusion": "Because the best childhood memories are created together, simply. \ud83c\udf08",
 
   // Footer
-  "footer.text": "Coco \u2014 Copains du coin \u00a9 {0} \u2014 Made with love by parents, for parents.",
+  "footer.text": "Tribu \u2014 Your local tribe \u00a9 {0} \u2014 Made with love by parents, for parents.",
 
   // 404
   "notFound.title": "Page not found",
@@ -505,7 +505,7 @@ const en: Record<string, string> = {
   "events.inDays": "In {0} days",
 
   // PWA install
-  "pwa.install": "Add Coco to home screen",
+  "pwa.install": "Add Tribu to home screen",
   "pwa.installButton": "Install",
   "pwa.dismiss": "Later",
   "pwa.offline": "You are offline",
@@ -817,16 +817,16 @@ const en: Record<string, string> = {
   "hero.ctaViewEvents": "View events",
 
   // About page
-  "about.title": "About Coco",
+  "about.title": "About Tribu",
   "about.subtitle": "The app that simplifies outings with your neighborhood crew.",
-  "about.whatTitle": "What is Coco?",
-  "about.whatDesc1": "Coco is a free app that lets parents from the same neighborhood, school, or friend group organize outings for their kids in seconds.",
-  "about.whatDesc2": "No more endless WhatsApp threads to find a date. With Coco, you propose an outing, friends sign up, and you're good to go!",
+  "about.whatTitle": "What is Tribu?",
+  "about.whatDesc1": "Tribu is a free app that lets parents from the same neighborhood, school, or friend group organize outings for their kids in seconds.",
+  "about.whatDesc2": "No more endless WhatsApp threads to find a date. With Tribu, you propose an outing, friends sign up, and you're good to go!",
   "about.valuesTitle": "Our values",
   "about.value_simple_title": "Simple",
   "about.value_simple_desc": "Creating an outing takes less than a minute. No account required, no endless forms.",
   "about.value_local_title": "Local",
-  "about.value_local_desc": "Coco is built for local communities: your neighborhood, your school, your neighbors.",
+  "about.value_local_desc": "Tribu is built for local communities: your neighborhood, your school, your neighbors.",
   "about.value_private_title": "Private",
   "about.value_private_desc": "Your data stays yours. No ads, no tracking, no data reselling.",
   "about.value_family_title": "Made for families",
@@ -834,11 +834,11 @@ const en: Record<string, string> = {
   "about.contactTitle": "Contact us",
   "about.contactDesc": "Got a question, a suggestion, or just want to say hi? Drop us a line!",
   "about.hostingTitle": "Hosting & data",
-  "about.hostingDesc": "Coco is hosted in France by Vercel (Paris). Your data never leaves French territory and is subject to GDPR regulations.",
+  "about.hostingDesc": "Tribu is hosted in France by Vercel (Paris). Your data never leaves French territory and is subject to GDPR regulations.",
   "about.hostingProvider": "Vercel — Paris, France",
   "about.hostingLocation": "eu-west-3 region (Paris)",
   "about.sourceTitle": "Source code",
-  "about.sourceDesc": "Coco is an open-source project under the Apache 2.0 license. The code is public and accessible to everyone.",
+  "about.sourceDesc": "Tribu is an open-source project under the Apache 2.0 license. The code is public and accessible to everyone.",
   "about.backHome": "Back to home",
   "nav.about": "About",
   "footer.about": "About",
@@ -850,7 +850,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("fr");
 
   useEffect(() => {
-    const stored = localStorage.getItem("coco_locale") as Locale | null;
+    const stored = localStorage.getItem("tribu_locale") as Locale | null;
     if (stored === "fr" || stored === "en") {
       setLocaleState(stored);
       document.documentElement.lang = stored;
@@ -859,7 +859,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   function setLocale(l: Locale) {
     setLocaleState(l);
-    localStorage.setItem("coco_locale", l);
+    localStorage.setItem("tribu_locale", l);
     document.documentElement.lang = l;
   }
 

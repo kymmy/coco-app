@@ -1,4 +1,4 @@
-const CACHE_NAME = "coco-v1";
+const CACHE_NAME = "tribu-v1";
 const STATIC_ASSETS = ["/", "/events", "/create", "/groups", "/settings"];
 
 // Install: cache app shell
@@ -65,7 +65,7 @@ self.addEventListener("fetch", (event) => {
 // Push notifications
 self.addEventListener("push", (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || "Coco";
+  const title = data.title || "Tribu";
   const options = {
     body: data.body || "",
     icon: "/icon-192.png",

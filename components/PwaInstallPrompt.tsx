@@ -15,7 +15,7 @@ export default function PwaInstallPrompt() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("coco_pwa_dismissed")) return;
+    if (localStorage.getItem("tribu_pwa_dismissed")) return;
 
     function handler(e: Event) {
       e.preventDefault();
@@ -39,7 +39,7 @@ export default function PwaInstallPrompt() {
 
   function handleDismiss() {
     setDismissed(true);
-    localStorage.setItem("coco_pwa_dismissed", "1");
+    localStorage.setItem("tribu_pwa_dismissed", "1");
     setDeferredPrompt(null);
   }
 

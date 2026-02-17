@@ -15,11 +15,11 @@ export default function NotificationBanner() {
     if (Notification.permission === "denied") return;
 
     // Only show if user has joined at least one group
-    const groups = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    const groups = JSON.parse(localStorage.getItem("tribu_groups") || "[]") as string[];
     if (groups.length === 0) return;
 
     // Only show once per session
-    if (sessionStorage.getItem("coco_notif_dismissed")) return;
+    if (sessionStorage.getItem("tribu_notif_dismissed")) return;
 
     setShow(true);
   }, []);
@@ -39,8 +39,8 @@ export default function NotificationBanner() {
       });
 
       const json = subscription.toJSON();
-      const username = localStorage.getItem("coco_username") || "";
-      const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+      const username = localStorage.getItem("tribu_username") || "";
+      const groupIds = JSON.parse(localStorage.getItem("tribu_groups") || "[]") as string[];
 
       await savePushSubscription(
         { endpoint: json.endpoint!, keys: { p256dh: json.keys!.p256dh, auth: json.keys!.auth } },
@@ -56,7 +56,7 @@ export default function NotificationBanner() {
   }
 
   function handleDismiss() {
-    sessionStorage.setItem("coco_notif_dismissed", "1");
+    sessionStorage.setItem("tribu_notif_dismissed", "1");
     setShow(false);
   }
 
