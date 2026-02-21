@@ -167,10 +167,10 @@ function CreateEventForm() {
 
   // Auto-fill organizer and load groups from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setOrganizer(saved);
 
-    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    const groupIds = JSON.parse(localStorage.getItem("tribu_groups") || "[]") as string[];
     if (groupIds.length > 0) {
       getGroups(groupIds).then(setMyGroups);
     }
@@ -276,7 +276,7 @@ function CreateEventForm() {
     }
     // Save organizer name
     const org = formData.get("organizer") as string;
-    if (org) localStorage.setItem("coco_username", org);
+    if (org) localStorage.setItem("tribu_username", org);
 
     startTransition(async () => {
       const result = await createEvent(formData);

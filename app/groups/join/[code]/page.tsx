@@ -8,7 +8,7 @@ import { useT } from "@/lib/i18n";
 
 function getJoinedGroupIds(): string[] {
   if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem("coco_groups");
+  const raw = localStorage.getItem("tribu_groups");
   return raw ? (JSON.parse(raw) as string[]) : [];
 }
 
@@ -16,7 +16,7 @@ function addGroupToLocal(id: string) {
   const ids = getJoinedGroupIds();
   if (!ids.includes(id)) {
     ids.push(id);
-    localStorage.setItem("coco_groups", JSON.stringify(ids));
+    localStorage.setItem("tribu_groups", JSON.stringify(ids));
   }
 }
 

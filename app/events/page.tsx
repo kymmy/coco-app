@@ -193,13 +193,13 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   };
 
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setName(saved);
   }, []);
 
   const storedUsername =
     typeof window !== "undefined"
-      ? localStorage.getItem("coco_username") || ""
+      ? localStorage.getItem("tribu_username") || ""
       : "";
   const alreadyRegistered =
     storedUsername.trim() !== "" &&
@@ -216,7 +216,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
 
   function doRsvp(status: "coming" | "maybe") {
     if (!name.trim()) return;
-    localStorage.setItem("coco_username", name.trim());
+    localStorage.setItem("tribu_username", name.trim());
     startTransition(async () => {
       const result = await rsvpToEvent(event.id, name.trim(), status);
       if (result.error) {
@@ -233,7 +233,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   }
 
   function handleUnrsvp() {
-    const username = localStorage.getItem("coco_username");
+    const username = localStorage.getItem("tribu_username");
     if (!username) return;
     startTransition(async () => {
       const result = await unrsvpFromEvent(event.id, username.trim());
@@ -757,7 +757,7 @@ export default function EventsPage() {
   const [sortBy, setSortBy] = useState<"date" | "popular">("date");
   const [view, setView] = useState<"list" | "map" | "calendar">(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("coco_view_pref");
+      const saved = localStorage.getItem("tribu_view_pref");
       if (saved === "list" || saved === "map" || saved === "calendar") return saved;
     }
     return "list";
@@ -776,7 +776,7 @@ export default function EventsPage() {
 
   function changeView(v: "list" | "map" | "calendar") {
     setView(v);
-    localStorage.setItem("coco_view_pref", v);
+    localStorage.setItem("tribu_view_pref", v);
   }
 
   const CATEGORY_LABELS: Record<string, string> = {
@@ -798,7 +798,7 @@ export default function EventsPage() {
   ];
 
   useEffect(() => {
-    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    const groupIds = JSON.parse(localStorage.getItem("tribu_groups") || "[]") as string[];
     setHasGroups(groupIds.length > 0);
     getEvents(groupIds.length > 0 ? groupIds : undefined).then((data) => {
       setAllEvents(data);

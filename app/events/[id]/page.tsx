@@ -413,7 +413,7 @@ function PhotoGallery({
   const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setUsername(saved);
   }, []);
 
@@ -572,7 +572,7 @@ function EditForm({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const groupIds = JSON.parse(localStorage.getItem("coco_groups") || "[]") as string[];
+    const groupIds = JSON.parse(localStorage.getItem("tribu_groups") || "[]") as string[];
     if (groupIds.length > 0) {
       getGroups(groupIds).then(setMyGroups);
     }
@@ -778,13 +778,13 @@ function CommentSection({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setAuthor(saved);
   }, []);
 
   function handleSubmit() {
     if (!author.trim() || !content.trim()) return;
-    localStorage.setItem("coco_username", author.trim());
+    localStorage.setItem("tribu_username", author.trim());
     startTransition(async () => {
       const result = await addComment(eventId, author.trim(), content.trim());
       if (result.error) {
@@ -804,7 +804,7 @@ function CommentSection({
     });
   }
 
-  const currentUser = typeof window !== "undefined" ? localStorage.getItem("coco_username") || "" : "";
+  const currentUser = typeof window !== "undefined" ? localStorage.getItem("tribu_username") || "" : "";
 
   return (
     <div>
@@ -905,7 +905,7 @@ function ChecklistSection({
   const [username, setUsername] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setUsername(saved);
   }, []);
 
@@ -1111,12 +1111,12 @@ export default function EventDetailPage() {
   }, [loadEvent]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     if (saved) setSubscribeName(saved);
   }, []);
 
   function getUsernameFromStorage(): string {
-    return localStorage.getItem("coco_username") || "";
+    return localStorage.getItem("tribu_username") || "";
   }
 
   function isUserInAnyList(): boolean {
@@ -1138,7 +1138,7 @@ export default function EventDetailPage() {
       setShowRsvp(true);
       return;
     }
-    localStorage.setItem("coco_username", name);
+    localStorage.setItem("tribu_username", name);
     startTransition(async () => {
       const result = await rsvpToEvent(id, name, status);
       if (result.error) {
@@ -1214,7 +1214,7 @@ export default function EventDetailPage() {
 
   function isOrganizer(): boolean {
     if (!event) return false;
-    const saved = localStorage.getItem("coco_username");
+    const saved = localStorage.getItem("tribu_username");
     return saved?.toLowerCase() === event.organizer.toLowerCase();
   }
 
