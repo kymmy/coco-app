@@ -15,6 +15,7 @@ model Group {
   id        String   @id @default(uuid())
   name      String
   code      String   @unique
+  createdBy String?
   createdAt DateTime @default(now())
   events    Event[]
 }

@@ -55,7 +55,7 @@ function generateCode(): string {
   return code;
 }
 
-export async function createGroup(name: string) {
+export async function createGroup(name: string, createdBy?: string) {
   if (!name.trim()) return { error: "Le nom du groupe est requis." };
 
   let code = generateCode();
@@ -66,7 +66,11 @@ export async function createGroup(name: string) {
   }
 
   const group = await prisma.group.create({
-    data: { name: sanitize(name), code },
+    data: {
+      name: sanitize(name),
+      code,
+      createdBy: createdBy || null,
+    },
   });
 
   return { group };

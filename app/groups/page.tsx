@@ -11,6 +11,7 @@ interface Group {
   id: string;
   name: string;
   code: string;
+  createdBy: string | null;
   createdAt: Date;
 }
 
@@ -66,7 +67,14 @@ function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
         <h3 className="mb-1 text-lg font-extrabold text-charcoal">
           {t("groups.share")}
         </h3>
-        <p className="mb-5 text-sm text-charcoal-muted">{group.name}</p>
+        <p className="mb-3 text-sm text-charcoal-muted">{group.name}</p>
+
+        {/* Info message for other devices */}
+        <div className="mb-5 rounded-xl bg-sky-50 border-2 border-sky-200 px-4 py-3">
+          <p className="text-sm text-sky-700 font-medium">
+            {t("groups.otherDeviceInfo")}
+          </p>
+        </div>
 
         {/* QR Code */}
         <div className="mb-5 flex flex-col items-center">
@@ -137,7 +145,8 @@ export default function GroupsPage() {
   function handleCreate() {
     if (!newName.trim()) return;
     startTransition(async () => {
-      const result = await createGroup(newName.trim());
+      const username = localStorage.getItem("tribu_username") || "";
+      const result = await createGroup(newName.trim(), username);
       if (result.error) {
         setError(result.error);
       } else if (result.group) {
@@ -146,6 +155,10 @@ export default function GroupsPage() {
         setNewName("");
         setShowCreate(false);
         setError(null);
+        // Show success message with code
+        toast(`✅ Groupe créé ! Code : ${result.group.code}`);
+        // Auto-open share modal to show QR code and sharing options
+        setTimeout(() => setShareGroup(result.group), 500);
       }
     });
   }
@@ -306,9 +319,18 @@ export default function GroupsPage() {
                 className="rounded-3xl bg-card p-6 shadow-md"
               >
                 <div className="mb-3 flex items-start justify-between">
-                  <h2 className="text-lg font-extrabold text-charcoal">
-                    {group.name}
-                  </h2>
+                  <div>
+                    <h2 className="text-lg font-extrabold text-charcoal">
+                      {group.name}
+                    </h2>
+                    {group.createdBy && (
+                      <p className="mt-1 text-xs text-charcoal-faint">
+                        {group.createdBy === (typeof window !== "undefined" ? localStorage.getItem("tribu_username") : "")
+                          ? "👤 Créé par vous"
+                          : t("groups.createdBy", group.createdBy)}
+                      </p>
+                    )}
+                  </div>
                   {leaveConfirm === group.id ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold text-pink-500">{t("groups.leaveConfirm")}</span>

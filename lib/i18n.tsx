@@ -315,6 +315,8 @@ const fr: Record<string, string> = {
   "groups.joinSuccess": "Bienvenue ! Vous avez rejoint le groupe.",
   "groups.groupNotFound": "Ce groupe n\u2019existe pas ou le lien est invalide.",
   "groups.goToEvents": "Voir les sorties",
+  "groups.createdBy": "Créé par {0}",
+  "groups.otherDeviceInfo": "💡 Sur un autre appareil ? Rejoignez avec le code ou scannez le QR code.",
 
   // Settings page
   "settings.title": "R\u00e9glages",
@@ -727,6 +729,8 @@ const en: Record<string, string> = {
   "groups.joinSuccess": "Welcome! You\u2019ve joined the group.",
   "groups.groupNotFound": "This group doesn\u2019t exist or the link is invalid.",
   "groups.goToEvents": "View events",
+  "groups.createdBy": "Created by {0}",
+  "groups.otherDeviceInfo": "💡 On another device? Join with the code or scan the QR code.",
 
   // Settings page
   "settings.title": "Settings",
