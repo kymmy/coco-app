@@ -42,7 +42,7 @@ export default function WhySection() {
     <section className="px-6 py-20 sm:px-12 lg:px-24">
       <div className="mx-auto max-w-5xl">
         <h2 className="mb-4 text-center text-3xl font-extrabold text-charcoal sm:text-4xl">
-          {t("why.title")}
+          Organiser une sortie, <span className="italic text-coral-500">c'est pas censé être compliqué</span> 🤯
         </h2>
         <p className="mx-auto mb-14 max-w-2xl text-center text-charcoal-muted">
           {t("why.subtitle")}
@@ -52,7 +52,7 @@ export default function WhySection() {
           {painPoints.map((point, i) => (
             <div
               key={point.emoji}
-              className={`rounded-3xl border ${point.border} ${point.bg} p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              className={`rounded-3xl border ${point.border} ${point.bg} p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
               style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 100}ms backwards` } : undefined}
             >
               <div className="mb-4 text-4xl">{point.emoji}</div>

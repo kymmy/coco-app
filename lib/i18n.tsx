@@ -37,7 +37,7 @@ const fr: Record<string, string> = {
   "hero.title": "Organisez les sorties entre copains du quartier ",
   "hero.titleAccent": "en 1 minute.",
   "hero.subtitle": "Fini les 42 messages WhatsApp pour trouver une date. Proposez, rassemblez, profitez. \ud83c\udf89",
-  "hero.ctaJoin": "D\u00e9couvrir les groupes",
+  "hero.ctaJoin": "Rejoindre un groupe",
   "hero.ctaCreate": "Cr\u00e9er une sortie",
 
   // Why section
@@ -74,11 +74,18 @@ const fr: Record<string, string> = {
   "community.bullet1Desc": "Seuls les membres du groupe peuvent voir et rejoindre les sorties.",
   "community.bullet2Title": "100% local",
   "community.bullet2Desc": "Votre \u00e9cole, votre quartier, vos voisins. Pas un r\u00e9seau social de plus.",
-  "community.bullet3Title": "Aucune pub, aucun tracking",
-  "community.bullet3Desc": "Vos donn\u00e9es restent les v\u00f4tres. Pas de pub, pas de revente.",
-  "community.bullet4Title": "Fait pour les familles",
-  "community.bullet4Desc": "Con\u00e7u par des parents, pour des parents. Simple, bienveillant, efficace.",
+  "community.bullet3Title": "Fait pour les familles",
+  "community.bullet3Desc": "Con\u00e7u par des parents, pour des parents. Simple, bienveillant, efficace.",
   "community.conclusion": "Parce que les meilleurs souvenirs d\u2019enfance se cr\u00e9ent ensemble, en toute simplicit\u00e9. \ud83c\udf08",
+
+  // Values
+  "values.subtitle": "Tribu respecte ce qui compte vraiment : votre temps et vos donn\u00e9es.",
+  "values.value1Title": "Z\u00e9ro bruit",
+  "values.value1Desc": "Pas de fil d\u2019actu, pas de likes, pas de notifications inutiles.",
+  "values.value2Title": "Aucune pub, aucun tracking",
+  "values.value2Desc": "Vos donn\u00e9es restent les v\u00f4tres. Jamais de revente.",
+  "values.value3Title": "Simple et rapide",
+  "values.value3Desc": "Cr\u00e9er une sortie prend 30 secondes. Pas de friction.",
 
   // Footer
   "footer.text": "Tribu \u2014 Ta tribu locale \u00a9 {0} \u2014 Fait avec amour par des parents, pour des parents.",
@@ -462,7 +469,7 @@ const en: Record<string, string> = {
   "hero.title": "Organize outings with your neighborhood crew ",
   "hero.titleAccent": "in 1 minute.",
   "hero.subtitle": "No more 42 WhatsApp messages to find a date. Propose, gather, enjoy. \ud83c\udf89",
-  "hero.ctaJoin": "Discover groups",
+  "hero.ctaJoin": "Join a group",
   "hero.ctaCreate": "Create an outing",
 
   // Why section
@@ -499,11 +506,18 @@ const en: Record<string, string> = {
   "community.bullet1Desc": "Only group members can see and join outings.",
   "community.bullet2Title": "100% local",
   "community.bullet2Desc": "Your school, your neighborhood, your neighbors. Not another social network.",
-  "community.bullet3Title": "No ads, no tracking",
-  "community.bullet3Desc": "Your data stays yours. No ads, no reselling.",
-  "community.bullet4Title": "Made for families",
-  "community.bullet4Desc": "Designed by parents, for parents. Simple, caring, effective.",
+  "community.bullet3Title": "Made for families",
+  "community.bullet3Desc": "Designed by parents, for parents. Simple, caring, effective.",
   "community.conclusion": "Because the best childhood memories are created together, simply. \ud83c\udf08",
+
+  // Values
+  "values.subtitle": "Tribu respects what really matters: your time and your data.",
+  "values.value1Title": "Zero noise",
+  "values.value1Desc": "No news feed, no likes, no useless notifications.",
+  "values.value2Title": "No ads, no tracking",
+  "values.value2Desc": "Your data stays yours. Never resold.",
+  "values.value3Title": "Simple and fast",
+  "values.value3Desc": "Creating an outing takes 30 seconds. No friction.",
 
   // Footer
   "footer.text": "Tribu \u2014 Your local tribe \u00a9 {0} \u2014 Made with love by parents, for parents.",

@@ -19,7 +19,7 @@ export default function HowItWorks() {
     },
     {
       number: "2",
-      emoji: "📍",
+      emoji: "📅",
       title: t("how.step2Title"),
       description: t("how.step2Desc"),
       bg: "bg-mint-100",
@@ -41,7 +41,7 @@ export default function HowItWorks() {
     <section className="bg-warm-white px-6 py-20 sm:px-12 lg:px-24">
       <div className="mx-auto max-w-5xl">
         <h2 className="mb-4 text-center text-3xl font-extrabold text-charcoal sm:text-4xl">
-          {t("how.title")}
+          Comment <span className="italic text-coral-500">ça marche</span> ? 🧩
         </h2>
         <p className="mx-auto mb-14 max-w-xl text-center text-charcoal-muted">
           {t("how.subtitle")}

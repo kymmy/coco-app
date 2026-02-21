@@ -23,16 +23,9 @@ export default function Community() {
       border: "border-sky-200",
     },
     {
-      emoji: "🛡️",
+      emoji: "❤️",
       title: t("community.bullet3Title"),
       description: t("community.bullet3Desc"),
-      bg: "bg-mint-100",
-      border: "border-mint-200",
-    },
-    {
-      emoji: "❤️",
-      title: t("community.bullet4Title"),
-      description: t("community.bullet4Desc"),
       bg: "bg-pink-100",
       border: "border-pink-200",
     },
@@ -42,26 +35,24 @@ export default function Community() {
     <section className="px-6 py-20 sm:px-12 lg:px-24">
       <div className="mx-auto max-w-4xl">
         <h2 className="mb-4 text-center text-3xl font-extrabold text-charcoal sm:text-4xl">
-          {t("community.title")}
+          Une communauté de <span className="italic text-coral-500">confiance</span> 🤝
         </h2>
         <p className="mx-auto mb-14 max-w-xl text-center text-charcoal-muted">
           {t("community.subtitle")}
         </p>
 
-        <div ref={gridRef} className="grid gap-6 sm:grid-cols-2">
+        <div ref={gridRef} className="grid gap-6 sm:grid-cols-3">
           {bullets.map((bullet, i) => (
             <article
               key={bullet.emoji}
-              className={`flex gap-4 rounded-3xl border ${bullet.border} ${bullet.bg} p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
+              className={`rounded-3xl border ${bullet.border} ${bullet.bg} p-6 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${inView === false ? "opacity-0" : ""}`}
               style={inView === true ? { animation: `fadeInUp 0.4s ease-out ${i * 100}ms backwards` } : undefined}
             >
-              <div className="mt-0.5 text-3xl">{bullet.emoji}</div>
-              <div>
-                <h3 className="mb-1 font-bold text-charcoal">
-                  {bullet.title}
-                </h3>
-                <p className="text-charcoal-muted">{bullet.description}</p>
-              </div>
+              <div className="mb-4 text-4xl">{bullet.emoji}</div>
+              <h3 className="mb-2 text-lg font-bold text-charcoal">
+                {bullet.title}
+              </h3>
+              <p className="text-charcoal-muted">{bullet.description}</p>
             </article>
           ))}
         </div>
