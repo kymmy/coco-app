@@ -116,6 +116,89 @@ function ShareModal({ group, onClose }: { group: Group; onClose: () => void }) {
   );
 }
 
+function DeleteGroupModal({
+  group,
+  onClose,
+  onConfirm,
+  typedName,
+  setTypedName,
+}: {
+  group: Group;
+  onClose: () => void;
+  onConfirm: () => void;
+  typedName: string;
+  setTypedName: (name: string) => void;
+}) {
+  const t = useT();
+  const nameMatches = typedName.trim() === group.name;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-charcoal/40 backdrop-blur-sm" />
+      <div
+        className="relative w-full max-w-md rounded-3xl bg-card p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-charcoal-faint hover:text-charcoal transition-colors"
+          aria-label="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
+        <h3 className="mb-1 text-lg font-extrabold text-charcoal">
+          {t("groups.deleteConfirm")}
+        </h3>
+        <p className="mb-1 text-sm font-bold text-coral-500">{group.name}</p>
+
+        <div className="mb-5 rounded-xl bg-red-50 border-2 border-red-200 px-4 py-3">
+          <p className="text-sm text-red-700 font-medium">
+            ⚠️ {t("groups.deleteWarning")}
+          </p>
+        </div>
+
+        <div className="mb-5">
+          <label className="mb-2 block text-sm font-bold text-charcoal">
+            {t("groups.deleteTypeName")}
+          </label>
+          <input
+            type="text"
+            value={typedName}
+            onChange={(e) => setTypedName(e.target.value)}
+            placeholder={t("groups.deleteNamePlaceholder")}
+            className="w-full rounded-xl border-2 border-coral-200 bg-white px-4 py-3 text-charcoal placeholder-charcoal-faint focus:border-coral-500 focus:outline-none"
+            autoFocus
+          />
+          {typedName && !nameMatches && (
+            <p className="mt-1 text-xs text-red-500">
+              {t("groups.deleteNameMismatch")}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-full border-2 border-coral-200 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"
+          >
+            {t("groups.noDelete")}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!nameMatches}
+            className="flex-1 rounded-full bg-red-500 px-6 py-3 font-bold text-white shadow-lg transition-all hover:bg-red-400 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {t("groups.yesDelete")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GroupsPage() {
   const t = useT();
   const { toast } = useToast();
@@ -128,7 +211,9 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const [shareGroup, setShareGroup] = useState<Group | null>(null);
   const [leaveConfirm, setLeaveConfirm] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Group | null>(null);
+  const [deleteName, setDeleteName] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{ group: Group; timeoutId: NodeJS.Timeout } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -142,6 +227,15 @@ export default function GroupsPage() {
       setLoading(false);
     }
   }, []);
+
+  // Cleanup pending delete timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pendingDelete) {
+        clearTimeout(pendingDelete.timeoutId);
+      }
+    };
+  }, [pendingDelete]);
 
   function handleCreate() {
     if (!newName.trim()) return;
@@ -188,19 +282,44 @@ export default function GroupsPage() {
     setLeaveConfirm(null);
   }
 
-  function handleDelete(groupId: string) {
-    const username = localStorage.getItem("tribu_username") || "";
-    startTransition(async () => {
-      const result = await deleteGroup(groupId, username);
-      if (result.error) {
-        toast(`❌ ${result.error}`);
-      } else if (result.success) {
-        removeGroupFromLocal(groupId);
-        setGroups((prev) => prev.filter((g) => g.id !== groupId));
-        setDeleteConfirm(null);
-        toast(t("groups.deleted"));
-      }
-    });
+  function handleDelete() {
+    if (!deleteConfirm) return;
+
+    // Remove from UI immediately
+    const groupToDelete = deleteConfirm;
+    removeGroupFromLocal(groupToDelete.id);
+    setGroups((prev) => prev.filter((g) => g.id !== groupToDelete.id));
+    setDeleteConfirm(null);
+    setDeleteName("");
+
+    // Schedule permanent deletion after 10 seconds
+    const timeoutId = setTimeout(() => {
+      const username = localStorage.getItem("tribu_username") || "";
+      deleteGroup(groupToDelete.id, username).then((result) => {
+        if (result.error) {
+          // If error, restore the group
+          addGroupToLocal(groupToDelete.id);
+          setGroups((prev) => [...prev, groupToDelete]);
+          toast(`❌ ${result.error}`);
+        }
+        setPendingDelete(null);
+      });
+    }, 10000);
+
+    setPendingDelete({ group: groupToDelete, timeoutId });
+  }
+
+  function handleUndoDelete() {
+    if (!pendingDelete) return;
+
+    // Cancel the scheduled deletion
+    clearTimeout(pendingDelete.timeoutId);
+
+    // Restore the group
+    addGroupToLocal(pendingDelete.group.id);
+    setGroups((prev) => [...prev, pendingDelete.group]);
+    setPendingDelete(null);
+    toast(t("groups.restored"));
   }
 
   async function handleCopyCode(code: string) {
@@ -351,32 +470,6 @@ export default function GroupsPage() {
                     const username = typeof window !== "undefined" ? localStorage.getItem("tribu_username") : "";
                     const isCreator = group.createdBy === username && username !== "";
 
-                    if (deleteConfirm === group.id) {
-                      return (
-                        <div className="flex flex-col items-end gap-2">
-                          <span className="text-xs font-semibold text-red-500">{t("groups.deleteConfirm")}</span>
-                          <div className="text-xs text-red-400 max-w-[200px] text-right">
-                            {t("groups.deleteWarning")}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleDelete(group.id)}
-                              disabled={isPending}
-                              className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-red-400 disabled:opacity-50"
-                            >
-                              {t("groups.yesDelete")}
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirm(null)}
-                              className="text-xs font-semibold text-charcoal-faint hover:text-charcoal transition-colors"
-                            >
-                              {t("groups.noDelete")}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    }
-
                     if (leaveConfirm === group.id) {
                       return (
                         <div className="flex items-center gap-2">
@@ -400,7 +493,7 @@ export default function GroupsPage() {
                     if (isCreator) {
                       return (
                         <button
-                          onClick={() => setDeleteConfirm(group.id)}
+                          onClick={() => setDeleteConfirm(group)}
                           className="text-xs font-semibold text-charcoal-faint hover:text-red-500 transition-colors"
                         >
                           {t("groups.delete")}
@@ -460,6 +553,35 @@ export default function GroupsPage() {
       {/* Share modal */}
       {shareGroup && (
         <ShareModal group={shareGroup} onClose={() => setShareGroup(null)} />
+      )}
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <DeleteGroupModal
+          group={deleteConfirm}
+          onClose={() => {
+            setDeleteConfirm(null);
+            setDeleteName("");
+          }}
+          onConfirm={handleDelete}
+          typedName={deleteName}
+          setTypedName={setDeleteName}
+        />
+      )}
+
+      {/* Undo delete toast */}
+      {pendingDelete && (
+        <div className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 animate-[fadeInUp_0.25s_ease-out]">
+          <div className="flex items-center gap-3 rounded-2xl bg-charcoal px-5 py-3 text-sm font-bold text-white shadow-lg">
+            <span>✅ {t("groups.deleted")}</span>
+            <button
+              onClick={handleUndoDelete}
+              className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-charcoal transition-all hover:bg-gray-100 active:scale-95"
+            >
+              {t("groups.undoDelete")}
+            </button>
+          </div>
+        </div>
       )}
     </main>
   );

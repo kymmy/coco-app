@@ -320,9 +320,14 @@ const fr: Record<string, string> = {
   "groups.delete": "Supprimer",
   "groups.deleteConfirm": "Supprimer ce groupe ?",
   "groups.deleteWarning": "Cette action est irréversible. Tous les événements du groupe seront également supprimés.",
-  "groups.yesDelete": "Oui, supprimer",
+  "groups.deleteTypeName": "Pour confirmer, tapez le nom du groupe :",
+  "groups.deleteNamePlaceholder": "Nom du groupe",
+  "groups.deleteNameMismatch": "Le nom ne correspond pas",
+  "groups.yesDelete": "Supprimer définitivement",
   "groups.noDelete": "Annuler",
   "groups.deleted": "Groupe supprimé",
+  "groups.undoDelete": "Annuler",
+  "groups.restored": "Groupe restauré",
 
   // Settings page
   "settings.title": "R\u00e9glages",
@@ -740,9 +745,14 @@ const en: Record<string, string> = {
   "groups.delete": "Delete",
   "groups.deleteConfirm": "Delete this group?",
   "groups.deleteWarning": "This action is irreversible. All group events will also be deleted.",
-  "groups.yesDelete": "Yes, delete",
+  "groups.deleteTypeName": "To confirm, type the group name:",
+  "groups.deleteNamePlaceholder": "Group name",
+  "groups.deleteNameMismatch": "Name doesn't match",
+  "groups.yesDelete": "Delete permanently",
   "groups.noDelete": "Cancel",
   "groups.deleted": "Group deleted",
+  "groups.undoDelete": "Undo",
+  "groups.restored": "Group restored",
 
   // Settings page
   "settings.title": "Settings",
