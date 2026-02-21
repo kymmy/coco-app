@@ -317,6 +317,12 @@ const fr: Record<string, string> = {
   "groups.goToEvents": "Voir les sorties",
   "groups.createdBy": "Créé par {0}",
   "groups.otherDeviceInfo": "💡 Sur un autre appareil ? Rejoignez avec le code ou scannez le QR code.",
+  "groups.delete": "Supprimer",
+  "groups.deleteConfirm": "Supprimer ce groupe ?",
+  "groups.deleteWarning": "Cette action est irréversible. Tous les événements du groupe seront également supprimés.",
+  "groups.yesDelete": "Oui, supprimer",
+  "groups.noDelete": "Annuler",
+  "groups.deleted": "Groupe supprimé",
 
   // Settings page
   "settings.title": "R\u00e9glages",
@@ -731,6 +737,12 @@ const en: Record<string, string> = {
   "groups.goToEvents": "View events",
   "groups.createdBy": "Created by {0}",
   "groups.otherDeviceInfo": "💡 On another device? Join with the code or scan the QR code.",
+  "groups.delete": "Delete",
+  "groups.deleteConfirm": "Delete this group?",
+  "groups.deleteWarning": "This action is irreversible. All group events will also be deleted.",
+  "groups.yesDelete": "Yes, delete",
+  "groups.noDelete": "Cancel",
+  "groups.deleted": "Group deleted",
 
   // Settings page
   "settings.title": "Settings",

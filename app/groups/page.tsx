@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { createGroup, joinGroup, getGroups } from "@/lib/actions";
+import { createGroup, joinGroup, getGroups, deleteGroup } from "@/lib/actions";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { useT } from "@/lib/i18n";
@@ -128,6 +128,7 @@ export default function GroupsPage() {
   const [error, setError] = useState<string | null>(null);
   const [shareGroup, setShareGroup] = useState<Group | null>(null);
   const [leaveConfirm, setLeaveConfirm] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -185,6 +186,21 @@ export default function GroupsPage() {
     removeGroupFromLocal(groupId);
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
     setLeaveConfirm(null);
+  }
+
+  function handleDelete(groupId: string) {
+    const username = localStorage.getItem("tribu_username") || "";
+    startTransition(async () => {
+      const result = await deleteGroup(groupId, username);
+      if (result.error) {
+        toast(`❌ ${result.error}`);
+      } else if (result.success) {
+        removeGroupFromLocal(groupId);
+        setGroups((prev) => prev.filter((g) => g.id !== groupId));
+        setDeleteConfirm(null);
+        toast(t("groups.deleted"));
+      }
+    });
   }
 
   async function handleCopyCode(code: string) {
@@ -331,30 +347,76 @@ export default function GroupsPage() {
                       </p>
                     )}
                   </div>
-                  {leaveConfirm === group.id ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-pink-500">{t("groups.leaveConfirm")}</span>
+                  {(() => {
+                    const username = typeof window !== "undefined" ? localStorage.getItem("tribu_username") : "";
+                    const isCreator = group.createdBy === username && username !== "";
+
+                    if (deleteConfirm === group.id) {
+                      return (
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="text-xs font-semibold text-red-500">{t("groups.deleteConfirm")}</span>
+                          <div className="text-xs text-red-400 max-w-[200px] text-right">
+                            {t("groups.deleteWarning")}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleDelete(group.id)}
+                              disabled={isPending}
+                              className="rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-red-400 disabled:opacity-50"
+                            >
+                              {t("groups.yesDelete")}
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(null)}
+                              className="text-xs font-semibold text-charcoal-faint hover:text-charcoal transition-colors"
+                            >
+                              {t("groups.noDelete")}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (leaveConfirm === group.id) {
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-pink-500">{t("groups.leaveConfirm")}</span>
+                          <button
+                            onClick={() => handleLeave(group.id)}
+                            className="rounded-full bg-pink-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-pink-400"
+                          >
+                            {t("groups.leaveYes")}
+                          </button>
+                          <button
+                            onClick={() => setLeaveConfirm(null)}
+                            className="text-xs font-semibold text-charcoal-faint hover:text-charcoal transition-colors"
+                          >
+                            {t("groups.leaveNo")}
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    if (isCreator) {
+                      return (
+                        <button
+                          onClick={() => setDeleteConfirm(group.id)}
+                          className="text-xs font-semibold text-charcoal-faint hover:text-red-500 transition-colors"
+                        >
+                          {t("groups.delete")}
+                        </button>
+                      );
+                    }
+
+                    return (
                       <button
-                        onClick={() => handleLeave(group.id)}
-                        className="rounded-full bg-pink-500 px-3 py-1 text-xs font-bold text-white transition-colors hover:bg-pink-400"
+                        onClick={() => setLeaveConfirm(group.id)}
+                        className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
                       >
-                        {t("groups.leaveYes")}
+                        {t("groups.leave")}
                       </button>
-                      <button
-                        onClick={() => setLeaveConfirm(null)}
-                        className="text-xs font-semibold text-charcoal-faint hover:text-charcoal transition-colors"
-                      >
-                        {t("groups.leaveNo")}
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setLeaveConfirm(group.id)}
-                      className="text-xs font-semibold text-charcoal-faint hover:text-pink-500 transition-colors"
-                    >
-                      {t("groups.leave")}
-                    </button>
-                  )}
+                    );
+                  })()}
                 </div>
 
                 <div className="mb-4 flex flex-wrap items-center gap-2">

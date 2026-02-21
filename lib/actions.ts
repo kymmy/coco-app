@@ -97,6 +97,28 @@ export async function getGroups(ids: string[]) {
   return prisma.group.findMany({ where: { id: { in: ids } } });
 }
 
+export async function deleteGroup(groupId: string, username: string) {
+  if (!groupId || !username) {
+    return { error: "Informations manquantes." };
+  }
+
+  // Verify that the user is the creator of the group
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
+
+  if (!group) {
+    return { error: "Groupe introuvable." };
+  }
+
+  if (group.createdBy !== username) {
+    return { error: "Seul le créateur du groupe peut le supprimer." };
+  }
+
+  // Delete the group (events will be deleted via CASCADE)
+  await prisma.group.delete({ where: { id: groupId } });
+
+  return { success: true };
+}
+
 // ==================== EVENTS ====================
 
 export async function createEvent(formData: FormData) {
