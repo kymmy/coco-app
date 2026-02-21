@@ -56,7 +56,7 @@ function generateCode(): string {
 }
 
 export async function createGroup(name: string, createdBy?: string) {
-  if (!name.trim()) return { error: "Le nom du groupe est requis." };
+  if (!name.trim()) return { error: "✏️ Le nom du groupe est requis." };
 
   let code = generateCode();
   let exists = await prisma.group.findUnique({ where: { code } });
@@ -83,7 +83,7 @@ export async function joinGroup(code: string) {
     where: { code: code.trim().toUpperCase() },
   });
 
-  if (!group) return { error: "Code introuvable. Vérifiez et réessayez." };
+  if (!group) return { error: "🔍 Code introuvable. Vérifiez qu'il est correct ou demandez un nouveau lien." };
 
   return { group };
 }
@@ -99,14 +99,14 @@ export async function getGroups(ids: string[]) {
 
 export async function deleteGroup(groupId: string, username: string) {
   if (!groupId) {
-    return { error: "Informations manquantes." };
+    return { error: "❌ Informations manquantes." };
   }
 
   // Verify that the user is the creator of the group
   const group = await prisma.group.findUnique({ where: { id: groupId } });
 
   if (!group) {
-    return { error: "Groupe introuvable." };
+    return { error: "🔍 Groupe introuvable." };
   }
 
   // Allow deletion if:
@@ -117,7 +117,7 @@ export async function deleteGroup(groupId: string, username: string) {
     (!group.createdBy && !username);
 
   if (!userCanDelete) {
-    return { error: "Seul le créateur du groupe peut le supprimer." };
+    return { error: "🔒 Seul le créateur du groupe peut le supprimer." };
   }
 
   // Delete the group (events will be deleted via CASCADE)
