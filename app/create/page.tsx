@@ -124,6 +124,7 @@ function CreateEventForm() {
     { value: "gouter", label: t("cat.gouter") },
     { value: "musee", label: t("cat.musee") },
     { value: "parc", label: t("cat.parc") },
+    { value: "parcattraction", label: t("cat.parcattraction") },
     { value: "piscine", label: t("cat.piscine") },
     { value: "restaurant", label: t("cat.restaurant") },
     { value: "spectacle", label: t("cat.spectacle") },
