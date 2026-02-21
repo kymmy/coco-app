@@ -98,7 +98,7 @@ export async function getGroups(ids: string[]) {
 }
 
 export async function deleteGroup(groupId: string, username: string) {
-  if (!groupId || !username) {
+  if (!groupId) {
     return { error: "Informations manquantes." };
   }
 
@@ -109,7 +109,14 @@ export async function deleteGroup(groupId: string, username: string) {
     return { error: "Groupe introuvable." };
   }
 
-  if (group.createdBy !== username) {
+  // Allow deletion if:
+  // 1. Both username and createdBy match (including both being empty/null)
+  // 2. Group was created without a username (createdBy is null or empty) and user has no username
+  const userCanDelete =
+    group.createdBy === username ||
+    (!group.createdBy && !username);
+
+  if (!userCanDelete) {
     return { error: "Seul le créateur du groupe peut le supprimer." };
   }
 
