@@ -169,7 +169,7 @@ function DeleteGroupModal({
             value={typedName}
             onChange={(e) => setTypedName(e.target.value)}
             placeholder={t("groups.deleteNamePlaceholder")}
-            className="w-full rounded-xl border-2 border-coral-200 bg-white px-4 py-3 text-charcoal placeholder-charcoal-faint focus:border-coral-500 focus:outline-none"
+            className="w-full rounded-xl border-2 border-coral-200 bg-card px-4 py-3 text-charcoal placeholder-charcoal-faint focus:border-coral-500 focus:outline-none"
             autoFocus
           />
           {typedName && !nameMatches && (
@@ -572,11 +572,11 @@ export default function GroupsPage() {
       {/* Undo delete toast */}
       {pendingDelete && (
         <div className="fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 animate-[fadeInUp_0.25s_ease-out]">
-          <div className="flex items-center gap-3 rounded-2xl bg-charcoal px-5 py-3 text-sm font-bold text-white shadow-lg">
+          <div className="flex items-center gap-3 rounded-2xl bg-[#1e293b] px-5 py-3 text-sm font-bold text-white shadow-lg">
             <span>✅ {t("groups.deleted")}</span>
             <button
               onClick={handleUndoDelete}
-              className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-charcoal transition-all hover:bg-gray-100 active:scale-95"
+              className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#1e293b] transition-all hover:bg-gray-100 active:scale-95"
             >
               {t("groups.undoDelete")}
             </button>
