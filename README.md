@@ -2,9 +2,9 @@
 
 **Ton entourage local** — Organize outings with neighbours and local friends. No more 42 WhatsApp messages.
 
-**Live:** https://tribu.vercel.app
+**Live:** https://tribu.le-village-marseille.fr
 
-**Portal:** https://le-village-portal.vercel.app
+**Portal:** https://le-village-marseille.fr
 
 ---
 
@@ -58,10 +58,10 @@ VAPID_PRIVATE_KEY=""
 
 | Project | URL | Repo |
 |---------|-----|------|
-| Portal | [le-village-portal.vercel.app](https://le-village-portal.vercel.app) | [kymmy/le-village-portal](https://github.com/kymmy/le-village-portal) |
-| Entourage (this) | [tribu.vercel.app](https://tribu.vercel.app) | This repo |
-| Little Movers | [little-movers.vercel.app](https://little-movers.vercel.app) | [kymmy/little-movers](https://github.com/kymmy/little-movers) |
-| Amour Toujours | [amour-toujours.vercel.app](https://amour-toujours.vercel.app) | [kymmy/amour-toujours](https://github.com/kymmy/amour-toujours) |
+| Portal | [le-village-marseille.fr](https://le-village-marseille.fr) | [kymmy/le-village-portal](https://github.com/kymmy/le-village-portal) |
+| Entourage (this) | [tribu.le-village-marseille.fr](https://tribu.le-village-marseille.fr) | This repo |
+| Little Movers | [little-movers.le-village-marseille.fr](https://little-movers.le-village-marseille.fr) | [kymmy/little-movers](https://github.com/kymmy/little-movers) |
+| Amour Toujours | [amour-toujours.le-village-marseille.fr](https://amour-toujours.le-village-marseille.fr) | [kymmy/amour-toujours](https://github.com/kymmy/amour-toujours) |
 
 ## License
 
