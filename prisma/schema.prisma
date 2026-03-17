@@ -51,11 +51,12 @@ model Event {
 }
 
 model Rsvp {
-  id      String @id @default(uuid())
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  name    String
-  status  String @default("coming") // "coming" | "maybe" | "cant"
+  id         String @id @default(uuid())
+  eventId    String
+  event      Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name       String
+  status     String @default("coming") // "coming" | "maybe" | "cant"
+  guestCount Int    @default(1)
 
   @@unique([eventId, name])
 }

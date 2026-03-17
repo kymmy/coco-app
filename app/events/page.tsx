@@ -28,7 +28,12 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: { coming: string[]; maybe: string[]; cant: string[]; waitlist: string[] };
+  attendees: { coming: RsvpEntry[]; maybe: RsvpEntry[]; cant: RsvpEntry[]; waitlist: RsvpEntry[] };
+}
+
+interface RsvpEntry {
+  name: string;
+  guestCount: number;
 }
 
 function formatDate(date: Date, locale: string): string {
@@ -101,11 +106,15 @@ function isUserInAttendees(
 ): boolean {
   const lower = username.toLowerCase();
   return (
-    attendees.coming.some((n) => n.toLowerCase() === lower) ||
-    attendees.maybe.some((n) => n.toLowerCase() === lower) ||
-    attendees.cant.some((n) => n.toLowerCase() === lower) ||
-    attendees.waitlist.some((n) => n.toLowerCase() === lower)
+    attendees.coming.some((e) => e.name.toLowerCase() === lower) ||
+    attendees.maybe.some((e) => e.name.toLowerCase() === lower) ||
+    attendees.cant.some((e) => e.name.toLowerCase() === lower) ||
+    attendees.waitlist.some((e) => e.name.toLowerCase() === lower)
   );
+}
+
+function totalGuests(entries: RsvpEntry[]): number {
+  return entries.reduce((sum, e) => sum + e.guestCount, 0);
 }
 
 // ---------- Share Button ----------
@@ -173,6 +182,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
     null
   );
   const [name, setName] = useState("");
+  const [guestCount, setGuestCount] = useState(1);
   const [justSubscribed, setJustSubscribed] = useState(false);
   const [wasWaitlisted, setWasWaitlisted] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -219,7 +229,7 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
     if (!name.trim()) return;
     localStorage.setItem("tribu_username", name.trim());
     startTransition(async () => {
-      const result = await rsvpToEvent(event.id, name.trim(), status);
+      const result = await rsvpToEvent(event.id, name.trim(), status, guestCount);
       if (result.error) {
         setSubscribeError(result.error);
       } else {
@@ -262,11 +272,13 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
   const isStartingSoon = !isPast && !isHappeningNow && start.getTime() - now.getTime() <= 2 * 60 * 60 * 1000 && start > now;
   const isFull =
     event.maxParticipants != null &&
-    event.attendees.coming.length >= event.maxParticipants;
+    event.maxParticipants != null &&
+    totalGuests(event.attendees.coming) >= event.maxParticipants;
   const ageRange = formatAgeRange(event.ageMin, event.ageMax, t);
+  const comingTotal = totalGuests(event.attendees.coming);
   const spotsLeft =
     event.maxParticipants != null
-      ? event.maxParticipants - event.attendees.coming.length
+      ? event.maxParticipants - comingTotal
       : null;
 
   return (
@@ -391,8 +403,8 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
         {/* Participants */}
         <div className="mb-4">
           <p className="mb-1 text-xs font-bold text-charcoal-muted uppercase">
-            {event.attendees.coming.length}{" "}
-            {event.attendees.coming.length !== 1
+            {comingTotal}{" "}
+            {comingTotal !== 1
               ? t("events.participants")
               : t("events.participant")}
             {spotsLeft != null && (
@@ -415,10 +427,10 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               <div className="flex flex-wrap gap-1.5">
                 {event.attendees.coming.map((a) => (
                   <span
-                    key={a}
+                    key={a.name}
                     className="inline-block rounded-full bg-mint-100 px-3 py-1 text-xs font-semibold text-mint-500"
                   >
-                    {a}
+                    {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                   </span>
                 ))}
               </div>
@@ -434,10 +446,10 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               <div className="flex flex-wrap gap-1.5">
                 {event.attendees.maybe.map((a) => (
                   <span
-                    key={a}
+                    key={a.name}
                     className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-600"
                   >
-                    {a}
+                    {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                   </span>
                 ))}
               </div>
@@ -453,10 +465,10 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
               <div className="flex flex-wrap gap-1.5">
                 {event.attendees.waitlist.map((a) => (
                   <span
-                    key={a}
+                    key={a.name}
                     className="inline-block rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-charcoal-muted"
                   >
-                    {a}
+                    {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                   </span>
                 ))}
               </div>
@@ -520,32 +532,60 @@ function EventCard({ event: initial }: { event: CocoEvent }) {
             )}
 
             {showSubscribe && (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
-                  placeholder={t("events.firstName")}
-                  autoFocus
-                  className="flex-1 rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
-                />
-                <button
-                  onClick={handleNameSubmit}
-                  disabled={isPending || !name.trim()}
-                  className="rounded-full bg-coral-500 px-5 py-2.5 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
-                >
-                  {isPending ? "..." : "OK"}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSubscribe(false);
-                    setRsvpStatus(null);
-                  }}
-                  className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-card-hover transition-colors"
-                >
-                  {t("events.cancel")}
-                </button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleNameSubmit()}
+                    placeholder={t("events.firstName")}
+                    autoFocus
+                    className="flex-1 rounded-xl border-2 border-coral-200 bg-coral-50 px-4 py-2.5 text-charcoal placeholder:text-charcoal-faint focus:border-coral-500 focus:outline-none focus:ring-2 focus:ring-coral-200 transition-colors"
+                  />
+                  <button
+                    onClick={handleNameSubmit}
+                    disabled={isPending || !name.trim()}
+                    className="rounded-full bg-coral-500 px-5 py-2.5 font-bold text-white shadow transition-all hover:bg-coral-400 active:scale-95 disabled:opacity-50"
+                  >
+                    {isPending ? "..." : "OK"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSubscribe(false);
+                      setRsvpStatus(null);
+                      setGuestCount(1);
+                    }}
+                    className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-card-hover transition-colors"
+                  >
+                    {t("events.cancel")}
+                  </button>
+                </div>
+                <div className="flex items-center gap-3 px-1">
+                  <label className="text-xs font-semibold text-charcoal-muted">
+                    {t("events.guestCount")}
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                      className="h-7 w-7 rounded-full border border-coral-200 text-sm font-bold text-charcoal-muted hover:bg-coral-50 transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center text-sm font-bold text-charcoal">{guestCount}</span>
+                    <button
+                      onClick={() => setGuestCount(Math.min(20, guestCount + 1))}
+                      className="h-7 w-7 rounded-full border border-coral-200 text-sm font-bold text-charcoal-muted hover:bg-coral-50 transition-colors"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {guestCount > 1 && (
+                    <span className="text-xs text-charcoal-muted">
+                      ({t("events.youPlus", guestCount - 1)})
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
@@ -830,7 +870,7 @@ export default function EventsPage() {
     .filter((e) => new Date(e.date) >= now)
     .sort((a, b) =>
       sortBy === "popular"
-        ? b.attendees.coming.length - a.attendees.coming.length
+        ? totalGuests(b.attendees.coming) - totalGuests(a.attendees.coming)
         : new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
@@ -1067,9 +1107,8 @@ export default function EventsPage() {
 
 function MapView({ events }: { events: CocoEvent[] }) {
   const t = useT();
-  const [MapComponent, setMapComponent] = useState<React.ComponentType<{
-    events: CocoEvent[];
-  }> | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
 
   useEffect(() => {
     import("@/components/EventMap").then((mod) => {

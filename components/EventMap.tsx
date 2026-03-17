@@ -13,7 +13,7 @@ interface MapEvent {
   latitude: number | null;
   longitude: number | null;
   category: string;
-  attendees: { coming: string[]; maybe: string[]; cant: string[] };
+  attendees: { coming: { name: string; guestCount: number }[]; maybe: { name: string; guestCount: number }[]; cant: { name: string; guestCount: number }[] };
 }
 
 function formatDateShort(date: Date, locale: string): string {
@@ -61,7 +61,7 @@ export default function EventMap({ events }: { events: MapEvent[] }) {
       const latlng = L.latLng(e.latitude!, e.longitude!);
       bounds.extend(latlng);
 
-      const count = e.attendees.coming.length;
+      const count = e.attendees.coming.reduce((sum, a) => sum + a.guestCount, 0);
       L.marker(latlng, { icon: coralIcon })
         .addTo(map)
         .bindPopup(

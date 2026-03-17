@@ -89,10 +89,19 @@ interface CocoEvent {
   groupId: string | null;
   group: { id: string; name: string; code: string } | null;
   createdAt: Date;
-  attendees: { coming: string[]; maybe: string[]; cant: string[]; waitlist: string[] };
+  attendees: { coming: RsvpEntry[]; maybe: RsvpEntry[]; cant: RsvpEntry[]; waitlist: RsvpEntry[] };
   photos: EventPhoto[];
   comments: Comment[];
   checklist: ChecklistItemType[];
+}
+
+interface RsvpEntry {
+  name: string;
+  guestCount: number;
+}
+
+function totalGuests(entries: RsvpEntry[]): number {
+  return entries.reduce((sum, e) => sum + e.guestCount, 0);
 }
 
 interface WeatherData {
@@ -1095,6 +1104,7 @@ export default function EventDetailPage() {
   const [subscribeName, setSubscribeName] = useState("");
   const [justSubscribed, setJustSubscribed] = useState(false);
   const [wasWaitlisted, setWasWaitlisted] = useState(false);
+  const [guestCount, setGuestCount] = useState(1);
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1126,10 +1136,10 @@ export default function EventDetailPage() {
     const saved = getUsernameFromStorage().toLowerCase();
     if (!saved) return false;
     return (
-      event.attendees.coming.some((n) => n.toLowerCase() === saved) ||
-      event.attendees.maybe.some((n) => n.toLowerCase() === saved) ||
-      event.attendees.cant.some((n) => n.toLowerCase() === saved) ||
-      event.attendees.waitlist.some((n) => n.toLowerCase() === saved)
+      event.attendees.coming.some((e) => e.name.toLowerCase() === saved) ||
+      event.attendees.maybe.some((e) => e.name.toLowerCase() === saved) ||
+      event.attendees.cant.some((e) => e.name.toLowerCase() === saved) ||
+      event.attendees.waitlist.some((e) => e.name.toLowerCase() === saved)
     );
   }
 
@@ -1142,7 +1152,7 @@ export default function EventDetailPage() {
     }
     localStorage.setItem("tribu_username", name);
     startTransition(async () => {
-      const result = await rsvpToEvent(id, name, status);
+      const result = await rsvpToEvent(id, name, status, guestCount);
       if (result.error) {
         setSubscribeError(result.error);
       } else if (result.attendees) {
@@ -1283,13 +1293,14 @@ export default function EventDetailPage() {
   }
 
   const isPast = new Date(event.date) < new Date();
+  const comingTotal = totalGuests(event.attendees.coming);
   const isFull =
     event.maxParticipants != null &&
-    event.attendees.coming.length >= event.maxParticipants;
+    comingTotal >= event.maxParticipants;
   const ageRange = formatAgeRange(event.ageMin, event.ageMax, t);
   const spotsLeft =
     event.maxParticipants != null
-      ? event.maxParticipants - event.attendees.coming.length
+      ? event.maxParticipants - comingTotal
       : null;
   const userAlreadyRsvped = isUserInAnyList();
 
@@ -1501,7 +1512,7 @@ export default function EventDetailPage() {
                 {/* Participants */}
                 <div className="mb-6 rounded-2xl bg-coral-50 p-4">
                   <p className="mb-2 text-sm font-bold text-charcoal">
-                    {event.attendees.coming.length} {event.attendees.coming.length !== 1 ? t("events.participants") : t("events.participant")}
+                    {comingTotal} {comingTotal !== 1 ? t("events.participants") : t("events.participant")}
                     {spotsLeft != null && (
                       <span
                         className={`ml-1 ${spotsLeft <= 2 && spotsLeft > 0 ? "text-pink-500" : "text-charcoal-muted"}`}
@@ -1520,11 +1531,11 @@ export default function EventDetailPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.coming.map((a) => (
                           <span
-                            key={a}
+                            key={a.name}
                             className="inline-flex items-center gap-1.5 rounded-full bg-mint-100 py-1 pl-1 pr-3 text-xs font-semibold text-mint-500"
                           >
-                            <Avatar name={a} />
-                            {a}
+                            <Avatar name={a.name} />
+                            {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                           </span>
                         ))}
                       </div>
@@ -1538,11 +1549,11 @@ export default function EventDetailPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.maybe.map((a) => (
                           <span
-                            key={a}
+                            key={a.name}
                             className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 py-1 pl-1 pr-3 text-xs font-semibold text-amber-500"
                           >
-                            <Avatar name={a} />
-                            {a}
+                            <Avatar name={a.name} />
+                            {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                           </span>
                         ))}
                       </div>
@@ -1556,11 +1567,11 @@ export default function EventDetailPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.cant.map((a) => (
                           <span
-                            key={a}
+                            key={a.name}
                             className="inline-flex items-center gap-1.5 rounded-full bg-pink-100 py-1 pl-1 pr-3 text-xs font-semibold text-pink-500"
                           >
-                            <Avatar name={a} />
-                            {a}
+                            <Avatar name={a.name} />
+                            {a.name}
                           </span>
                         ))}
                       </div>
@@ -1576,11 +1587,11 @@ export default function EventDetailPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {event.attendees.waitlist.map((a) => (
                           <span
-                            key={a}
+                            key={a.name}
                             className="inline-flex items-center gap-1.5 rounded-full bg-coral-50 py-1 pl-1 pr-3 text-xs font-semibold text-charcoal-muted"
                           >
-                            <Avatar name={a} />
-                            {a}
+                            <Avatar name={a.name} />
+                            {a.name}{a.guestCount > 1 && ` +${a.guestCount - 1}`}
                           </span>
                         ))}
                       </div>
@@ -1650,11 +1661,36 @@ export default function EventDetailPage() {
                               {isPending ? "..." : "OK"}
                             </button>
                             <button
-                              onClick={() => setShowRsvp(false)}
+                              onClick={() => { setShowRsvp(false); setGuestCount(1); }}
                               className="rounded-full border-2 border-charcoal-faint px-4 py-2.5 text-sm font-semibold text-charcoal-muted hover:bg-card transition-colors"
                             >
                               {t("events.cancel")}
                             </button>
+                          </div>
+                          <div className="flex items-center gap-3 px-1">
+                            <label className="text-xs font-semibold text-charcoal-muted">
+                              {t("events.guestCount")}
+                            </label>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
+                                className="h-7 w-7 rounded-full border border-coral-200 text-sm font-bold text-charcoal-muted hover:bg-coral-50 transition-colors"
+                              >
+                                -
+                              </button>
+                              <span className="w-8 text-center text-sm font-bold text-charcoal">{guestCount}</span>
+                              <button
+                                onClick={() => setGuestCount(Math.min(20, guestCount + 1))}
+                                className="h-7 w-7 rounded-full border border-coral-200 text-sm font-bold text-charcoal-muted hover:bg-coral-50 transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                            {guestCount > 1 && (
+                              <span className="text-xs text-charcoal-muted">
+                                ({t("events.youPlus", guestCount - 1)})
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-charcoal-muted">
                             {rsvpStatus === "coming"

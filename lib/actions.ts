@@ -245,13 +245,25 @@ export async function createEvent(formData: FormData) {
   redirect("/events");
 }
 
-function formatRsvps(rsvps: { name: string; status: string }[]) {
+interface RsvpEntry {
+  name: string;
+  guestCount: number;
+}
+
+function formatRsvps(rsvps: { name: string; status: string; guestCount: number }[]) {
+  const toEntries = (list: typeof rsvps): RsvpEntry[] =>
+    list.map((r) => ({ name: r.name, guestCount: r.guestCount }));
+
   return {
-    coming: rsvps.filter((r) => r.status === "coming").map((r) => r.name),
-    maybe: rsvps.filter((r) => r.status === "maybe").map((r) => r.name),
-    cant: rsvps.filter((r) => r.status === "cant").map((r) => r.name),
-    waitlist: rsvps.filter((r) => r.status === "waitlist").map((r) => r.name),
+    coming: toEntries(rsvps.filter((r) => r.status === "coming")),
+    maybe: toEntries(rsvps.filter((r) => r.status === "maybe")),
+    cant: toEntries(rsvps.filter((r) => r.status === "cant")),
+    waitlist: toEntries(rsvps.filter((r) => r.status === "waitlist")),
   };
+}
+
+function totalGuests(entries: RsvpEntry[]): number {
+  return entries.reduce((sum, e) => sum + e.guestCount, 0);
 }
 
 export async function getEvents(groupIds?: string[]) {
@@ -381,11 +393,13 @@ export async function deleteEventSeries(seriesId: string) {
 export async function rsvpToEvent(
   eventId: string,
   name: string,
-  status: "coming" | "maybe" | "cant"
+  status: "coming" | "maybe" | "cant",
+  guestCount: number = 1
 ) {
   if (!name.trim()) return { error: "Le prénom est requis." };
 
   const cleanName = sanitize(name);
+  const safeGuestCount = Math.max(1, Math.min(guestCount, 20));
 
   const event = await prisma.event.findUnique({
     where: { id: eventId },
@@ -393,17 +407,21 @@ export async function rsvpToEvent(
   });
   if (!event) return { error: "Événement introuvable." };
 
-  const comingCount = event.rsvps.filter((r) => r.status === "coming").length;
   const existingRsvp = event.rsvps.find(
     (r) => r.name.toLowerCase() === cleanName.toLowerCase()
   );
+
+  // Count total guests from all "coming" RSVPs (excluding the current user's old RSVP)
+  const currentTotalGuests = event.rsvps
+    .filter((r) => r.status === "coming" && r.name.toLowerCase() !== cleanName.toLowerCase())
+    .reduce((sum, r) => sum + r.guestCount, 0);
 
   // Check capacity for new "coming" RSVPs — put on waitlist if full
   let finalStatus: string = status;
   if (
     status === "coming" &&
     event.maxParticipants &&
-    comingCount >= event.maxParticipants &&
+    currentTotalGuests + safeGuestCount > event.maxParticipants &&
     (!existingRsvp || existingRsvp.status !== "coming")
   ) {
     finalStatus = "waitlist";
@@ -413,8 +431,8 @@ export async function rsvpToEvent(
     where: {
       eventId_name: { eventId, name: cleanName },
     },
-    update: { status: finalStatus },
-    create: { eventId, name: cleanName, status: finalStatus },
+    update: { status: finalStatus, guestCount: safeGuestCount },
+    create: { eventId, name: cleanName, status: finalStatus, guestCount: safeGuestCount },
   });
 
   // Notify organizer for "coming" RSVPs
@@ -455,28 +473,27 @@ export async function unrsvpFromEvent(eventId: string, name: string) {
   if (removedRsvp?.status === "coming") {
     const event = await prisma.event.findUnique({ where: { id: eventId } });
     if (event?.maxParticipants) {
-      const currentComing = await prisma.rsvp.count({
+      const comingRsvps = await prisma.rsvp.findMany({
         where: { eventId, status: "coming" },
       });
+      const currentTotalGuests = comingRsvps.reduce((sum, r) => sum + r.guestCount, 0);
 
-      if (currentComing < event.maxParticipants) {
-        const firstWaitlisted = await prisma.rsvp.findFirst({
-          where: { eventId, status: "waitlist" },
-          orderBy: { id: "asc" },
+      const firstWaitlisted = await prisma.rsvp.findFirst({
+        where: { eventId, status: "waitlist" },
+        orderBy: { id: "asc" },
+      });
+
+      if (firstWaitlisted && currentTotalGuests + firstWaitlisted.guestCount <= event.maxParticipants) {
+        await prisma.rsvp.update({
+          where: { id: firstWaitlisted.id },
+          data: { status: "coming" },
         });
 
-        if (firstWaitlisted) {
-          await prisma.rsvp.update({
-            where: { id: firstWaitlisted.id },
-            data: { status: "coming" },
-          });
-
-          sendPushToUser(firstWaitlisted.name, {
-            title: "Une place s'est libérée !",
-            body: `Vous êtes maintenant inscrit(e) à "${event.title}"`,
-            url: `/events/${eventId}`,
-          }).catch(() => {});
-        }
+        sendPushToUser(firstWaitlisted.name, {
+          title: "Une place s'est libérée !",
+          body: `Vous êtes maintenant inscrit(e) à "${event.title}"`,
+          url: `/events/${eventId}`,
+        }).catch(() => {});
       }
     }
   }

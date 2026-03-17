@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Rsvp" ADD COLUMN "guestCount" INTEGER NOT NULL DEFAULT 1;
