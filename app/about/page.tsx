@@ -106,7 +106,7 @@ export default function AboutPage() {
             {t("about.sourceDesc")}
           </p>
           <a
-            href="https://github.com/kymmy/coco-app"
+            href="https://github.com/kymmy/tribu-app"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border-2 border-coral-500 px-6 py-3 font-bold text-coral-500 transition-all hover:bg-coral-50 active:scale-95"

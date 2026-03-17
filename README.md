@@ -2,7 +2,7 @@
 
 **Ton entourage local** — Organize outings with neighbours and local friends. No more 42 WhatsApp messages.
 
-**Live:** https://coco-app-three.vercel.app
+**Live:** https://tribu.vercel.app
 
 **Portal:** https://le-village-portal.vercel.app
 
@@ -59,7 +59,7 @@ VAPID_PRIVATE_KEY=""
 | Project | URL | Repo |
 |---------|-----|------|
 | Portal | [le-village-portal.vercel.app](https://le-village-portal.vercel.app) | [kymmy/le-village-portal](https://github.com/kymmy/le-village-portal) |
-| Entourage (this) | [coco-app-three.vercel.app](https://coco-app-three.vercel.app) | This repo |
+| Entourage (this) | [tribu.vercel.app](https://tribu.vercel.app) | This repo |
 | Little Movers | [little-movers.vercel.app](https://little-movers.vercel.app) | [kymmy/little-movers](https://github.com/kymmy/little-movers) |
 | Amour Toujours | [amour-toujours.vercel.app](https://amour-toujours.vercel.app) | [kymmy/amour-toujours](https://github.com/kymmy/amour-toujours) |
 
