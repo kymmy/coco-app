@@ -103,6 +103,7 @@ const fr: Record<string, string> = {
   // PWA install
   "pwa.install": "Ajouter Tribu \u00e0 l\u2019\u00e9cran d\u2019accueil",
   "pwa.installButton": "Installer",
+  "pwa.iosGuide": "Appuyez sur le bouton partager \u2b06\ufe0f en bas de Safari, puis \u00ab Ajouter \u00e0 l\u2019\u00e9cran d\u2019accueil \u00bb pour installer Tribu comme une app.",
   "pwa.dismiss": "Plus tard",
   "pwa.offline": "Vous \u00eates hors connexion",
 
@@ -537,6 +538,7 @@ const en: Record<string, string> = {
   // PWA install
   "pwa.install": "Add Tribu to home screen",
   "pwa.installButton": "Install",
+  "pwa.iosGuide": "Tap the share button \u2b06\ufe0f at the bottom of Safari, then \u201cAdd to Home Screen\u201d to install Tribu as an app.",
   "pwa.dismiss": "Later",
   "pwa.offline": "You are offline",
 
